@@ -8,18 +8,31 @@ on:
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
+    env:
+      XDG_RUNTIME_DIR: /tmp/pipewire-ci-runtime
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Install dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y meson ninja-build pkg-config libpipewire-0.3-dev libspa-0.2-dev pipewire
 
+      # The tests connect a stream, so the daemon has to be up before they
+      # run; waiting for its socket replaces a fixed two-second guess.
       - name: Start PipeWire
         run: |
-          pipewire &
-          sleep 2
+          mkdir -p "$XDG_RUNTIME_DIR"
+          chmod 700 "$XDG_RUNTIME_DIR"
+          pipewire > /tmp/pipewire-ci.log 2>&1 &
+          disown
+          for _ in $(seq 1 20); do
+            [ -S "$XDG_RUNTIME_DIR/pipewire-0" ] && exit 0
+            sleep 0.5
+          done
+          echo "pipewire did not start:" >&2
+          cat /tmp/pipewire-ci.log >&2
+          exit 1
 
       - name: Configure
         run: meson setup build
@@ -30,6 +43,10 @@ jobs:
       - name: Test
         run: meson test -C build --print-errorlogs
 
+      - name: Show the daemon log on failure
+        if: failure()
+        run: cat /tmp/pipewire-ci.log
+
   api-diff-check:
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request'
@@ -37,7 +54,7 @@ jobs:
       contents: read
       pull-requests: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
@@ -72,3 +89,49 @@ jobs:
           else
             gh api "repos/${{ github.repository }}/issues/$pr_number/comments" -X POST -f body="$body"
           fi
+
+  sanitizers:
+    name: Test under AddressSanitizer and UndefinedBehaviorSanitizer
+    runs-on: ubuntu-latest
+    env:
+      XDG_RUNTIME_DIR: /tmp/pipewire-asan-runtime
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y meson ninja-build pkg-config libpipewire-0.3-dev libspa-0.2-dev pipewire
+
+      - name: Start PipeWire
+        run: |
+          mkdir -p "$XDG_RUNTIME_DIR"
+          chmod 700 "$XDG_RUNTIME_DIR"
+          pipewire > /tmp/pipewire-asan.log 2>&1 &
+          disown
+          for _ in $(seq 1 20); do
+            [ -S "$XDG_RUNTIME_DIR/pipewire-0" ] && exit 0
+            sleep 0.5
+          done
+          echo "pipewire did not start:" >&2
+          cat /tmp/pipewire-asan.log >&2
+          exit 1
+
+      # b_lundef must be off so the sanitizer runtime resolves at link time.
+      - name: Configure with sanitizers
+        run: meson setup build -Db_sanitize=address,undefined -Db_lundef=false
+
+      - name: Build
+        run: meson compile -C build
+
+      # Leak detection starts off so the job reports memory errors first.
+      # Turning it on needs a suppressions file for PipeWire's own leaks.
+      - name: Test
+        env:
+          ASAN_OPTIONS: detect_leaks=0
+          UBSAN_OPTIONS: print_stacktrace=1:halt_on_error=1
+        run: meson test -C build --print-errorlogs --timeout-multiplier 5
+
+      - name: Show the daemon log on failure
+        if: failure()
+        run: cat /tmp/pipewire-asan.log
