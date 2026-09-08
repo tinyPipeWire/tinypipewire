@@ -1,0 +1,10 @@
+version: 2
+updates:
+  # Only the workflows have pinned versions to track. PipeWire comes from the
+  # system through pkg-config, so there is no package manifest to watch.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    commit-message:
+      prefix: ci
