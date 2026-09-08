@@ -62,8 +62,10 @@ jobs:
         id: api_diff
         run: .github/scripts/check-api-diff.sh "origin/${{ github.base_ref }}" /tmp/api-diff-summary.md
 
+      # Dependabot's pull requests get a read-only token whatever this job
+      # asks for, so posting would fail and take a required check down.
       - name: Comment on the PR about API changes
-        if: always()
+        if: always() && github.actor != 'dependabot[bot]'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
