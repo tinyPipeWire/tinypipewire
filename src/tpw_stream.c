@@ -181,6 +181,8 @@ int tpw_stream_internal_connect(struct tpw_stream* stream, const struct spa_pod*
                                                      playback ? "Playback" : "Capture", NULL);
     if (stream->target)
         pw_properties_set(props, PW_KEY_TARGET_OBJECT, stream->target);
+    if (stream->role)
+        pw_properties_set(props, PW_KEY_MEDIA_ROLE, stream->role);
 
     pw_thread_loop_lock(stream->conn.loop);
 
@@ -224,6 +226,22 @@ int tpw_stream_internal_connect(struct tpw_stream* stream, const struct spa_pod*
     return TPW_STREAM_OK;
 }
 
+/* Replaces an optional string setting with a copy of `value`, where NULL or
+ * "" clears it; the old value is kept if the copy cannot be made. */
+static int tpw_stream_replace_string(char** slot, const char* value)
+{
+    char* copy = NULL;
+    if (value && *value) {
+        copy = strdup(value);
+        if (!copy)
+            return TPW_STREAM_ERR_INVALID_ARG;
+    }
+
+    free(*slot);
+    *slot = copy;
+    return TPW_STREAM_OK;
+}
+
 int tpw_stream_set_error_cb(tpw_stream_h handle, tpw_stream_error_cb callback)
 {
     struct tpw_stream* stream = (struct tpw_stream*)handle;
@@ -259,16 +277,16 @@ int tpw_stream_set_target(tpw_stream_h handle, const char* target)
     if (target && *target && !stream->autoconnect)
         return TPW_STREAM_ERR_INVALID_ARG; /* see tpw_stream_set_autoconnect() */
 
-    char* copy = NULL;
-    if (target && *target) {
-        copy = strdup(target);
-        if (!copy)
-            return TPW_STREAM_ERR_INVALID_ARG;
-    }
+    return tpw_stream_replace_string(&stream->target, target);
+}
 
-    free(stream->target);
-    stream->target = copy;
-    return TPW_STREAM_OK;
+int tpw_stream_set_role(tpw_stream_h handle, const char* role)
+{
+    struct tpw_stream* stream = (struct tpw_stream*)handle;
+    if (!stream)
+        return TPW_STREAM_ERR_INVALID_ARG;
+
+    return tpw_stream_replace_string(&stream->role, role);
 }
 
 int tpw_stream_start(tpw_stream_h handle)
@@ -339,6 +357,7 @@ void tpw_stream_destroy(tpw_stream_h handle)
     }
     tpw_stream_teardown(stream);
     free(stream->target);
+    free(stream->role);
     free(stream);
     tpw_pw_global_deinit();
 }

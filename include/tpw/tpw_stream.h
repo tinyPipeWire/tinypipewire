@@ -157,6 +157,22 @@ int tpw_stream_set_error_cb(tpw_stream_h stream, tpw_stream_error_cb callback);
 int tpw_stream_set_target(tpw_stream_h stream, const char* target);
 
 /**
+ * @brief Sets (or clears, with NULL) the media role this stream declares,
+ *        such as "Music", "Movie", "Communication" or "Notification".
+ *
+ * Like a target, it is a hint to the session manager's role policy and is
+ * read when tpw_stream_set_audio_config()/tpw_stream_set_video_config()
+ * connects the stream, so a role set later does not reach that node.
+ * Nothing acts on it without such a policy, which is why it is accepted
+ * whatever the autoconnect setting, where a target is not.
+ *
+ * @param stream The stream to label, before its format is set.
+ * @param role   A role name, or NULL to clear a previously set role.
+ * @return TPW_STREAM_OK, or TPW_STREAM_ERR_INVALID_ARG for a NULL `stream`.
+ */
+int tpw_stream_set_role(tpw_stream_h stream, const char* role);
+
+/**
  * @brief One target tpw_stream_set_target()/tpw_stream_link() would
  *        accept, discovered from the running graph.
  */
