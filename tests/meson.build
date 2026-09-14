@@ -21,6 +21,7 @@ unit_tests = [
   'test_filter_push_race',
   'test_stream_playback',
   'test_stream_routing',
+  'test_stream_role',
   'test_stream_dmabuf',
   'test_video_enum',
 ]
