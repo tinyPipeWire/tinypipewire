@@ -23,7 +23,7 @@ tinypipewire_sources = files(
 tinypipewire_lib = library('tinypipewire',
   tinypipewire_sources,
   include_directories: tpw_inc,
-  dependencies: [pipewire_dep],
+  dependencies: [pipewire_dep, dependency('threads')],
   soversion: meson.project_version().split('.')[0],
   install: true,
 )

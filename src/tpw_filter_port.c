@@ -92,17 +92,14 @@ int tpw_filter_push_port_data(tpw_filter_h handle, tpw_filter_port_h port_handle
     if (size > 0 && !data)
         return TPW_STREAM_ERR_INVALID_ARG;
 
-    /* Pushing from inside the processing callback means we are already on
-     * the loop's own thread; locking there would deadlock. */
-    bool lock = tpw_filter_processing != filter;
-    if (lock)
-        pw_thread_loop_lock(filter->conn.loop);
+    /* The cycle never holds this lock across the callback, so pushing from
+     * inside the callback takes it just as safely as any other thread. */
+    pthread_mutex_lock(&filter->push_lock);
 
     if (size > port->pushed_capacity) {
         void* grown = realloc(port->pushed_data, size);
         if (!grown) {
-            if (lock)
-                pw_thread_loop_unlock(filter->conn.loop);
+            pthread_mutex_unlock(&filter->push_lock);
             tpw_log_error("filter '%s': failed to grow push buffer to %zu bytes",
                           filter->name ? filter->name : "tpw-filter", size);
             return TPW_STREAM_ERR_INVALID_ARG;
@@ -116,8 +113,7 @@ int tpw_filter_push_port_data(tpw_filter_h handle, tpw_filter_port_h port_handle
     port->pushed_pts = pts;
     port->pushed_pending = true;
 
-    if (lock)
-        pw_thread_loop_unlock(filter->conn.loop);
+    pthread_mutex_unlock(&filter->push_lock);
     return TPW_STREAM_OK;
 }
 

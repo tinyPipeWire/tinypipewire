@@ -57,6 +57,10 @@ void tpw_filter_on_process(void* data, struct spa_io_position* position)
         }
     }
 
+    /* Pushes are staged under push_lock and swapped in here. If a push holds
+     * the lock right now, staged data waits for the next cycle rather than us. */
+    bool staged = pthread_mutex_trylock(&filter->push_lock) == 0;
+
     for (size_t i = 0; i < filter->n_ports; i++) {
         struct tpw_filter_port* port = filter->ports[i];
         buffers[i].port = (tpw_filter_port_h)port;
@@ -71,10 +75,12 @@ void tpw_filter_on_process(void* data, struct spa_io_position* position)
 
         if (port->media_type == TPW_STREAM_TYPE_EVENT) {
             if (port->direction == TPW_FILTER_PORT_INPUT) {
-                if (port->n_pending_events > 0) {
+                if (staged && port->n_pending_events > 0)
+                    tpw_filter_event_take_pending(port);
+                if (port->n_delivering_events > 0) {
                     /* Application-pushed events take priority over the
-                     * graph this cycle, same as pushed_data above. */
-                    tpw_filter_event_load_pending_as_incoming(port);
+                     * graph this cycle, same as pushed data below. */
+                    tpw_filter_event_load_delivering_as_incoming(port);
                 } else {
                     struct pw_buffer* b = pw_filter_dequeue_buffer(port);
                     if (b && b->buffer->datas[0].data) {
@@ -101,9 +107,17 @@ void tpw_filter_on_process(void* data, struct spa_io_position* position)
         if (port->direction == TPW_FILTER_PORT_INPUT) {
             bool got_new = false;
 
-            if (port->pushed_pending) {
-                /* Application-pushed data takes priority over the graph. */
-                buffers[i].data = port->pushed_data;
+            if (staged && port->pushed_pending) {
+                /* Application-pushed data takes priority over the graph. The swap
+                 * leaves the push side a buffer this thread no longer reads. */
+                void* data = port->pushed_data;
+                size_t capacity = port->pushed_capacity;
+                port->pushed_data = port->delivered_data;
+                port->pushed_capacity = port->delivered_capacity;
+                port->delivered_data = data;
+                port->delivered_capacity = capacity;
+
+                buffers[i].data = data;
                 buffers[i].size = port->pushed_size;
                 buffers[i].pts = port->pushed_pts;
                 port->pushed_pending = false;
@@ -164,6 +178,9 @@ void tpw_filter_on_process(void* data, struct spa_io_position* position)
         }
     }
 
+    if (staged)
+        pthread_mutex_unlock(&filter->push_lock);
+
     if (filter->process_cb) {
         /* Marked for the duration of the callback so the push helpers know
          * not to take this filter's loop lock from inside it. */
@@ -178,7 +195,7 @@ void tpw_filter_on_process(void* data, struct spa_io_position* position)
 
         if (port->media_type == TPW_STREAM_TYPE_EVENT) {
             if (port->direction == TPW_FILTER_PORT_INPUT) {
-                tpw_filter_event_clear_pending(port);
+                tpw_filter_event_clear_delivering(port);
             } else if (dequeued[i]) {
                 struct spa_data* d = &dequeued[i]->buffer->datas[0];
                 size_t encoded = tpw_filter_event_finish_output(port, d->data, d->maxsize);

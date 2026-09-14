@@ -3,6 +3,7 @@
 #ifndef TPW_FILTER_INTERNAL_H
 #define TPW_FILTER_INTERNAL_H
 
+#include <pthread.h>
 #include <stdbool.h>
 
 #include <pipewire/filter.h>
@@ -69,15 +70,17 @@ struct tpw_filter_port {
     size_t pushed_size;
     size_t pushed_capacity;
     int64_t pushed_pts;
-    bool pushed_pending; /* a freshly pushed buffer awaits this cycle's
-                            delivery; kept separate from pushed_data (which
-                            hold may retain across cycles) so a push is
-                            delivered exactly once. */
+    bool pushed_pending; /* A push awaits delivery, which happens exactly once. */
+
+    /* This is the data thread's side of a push swap, read by the callback and by
+     * hold. Only that thread touches it, so a later push never changes it. */
+    void* delivered_data;
+    size_t delivered_capacity;
 
     /* Event ports only. incoming_events is this cycle's delivered
      * events (input direction), read via tpw_filter_port_get_event();
      * its data/key pointers alias either the dequeued control
-     * sequence's memory or a staged pending_events entry's owned copy
+     * sequence's memory or a delivering_events entry's owned copy
      * — both stay valid for the rest of the cycle, so incoming_events
      * itself never owns the bytes it points to.
      *
@@ -102,6 +105,12 @@ struct tpw_filter_port {
     size_t n_pending_events;
     size_t pending_events_capacity;
     size_t event_output_capacity;
+
+    /* On input ports these are the events swapped out of pending_events for this
+     * cycle, and the data thread owns them until the cycle frees them. */
+    struct tpw_filter_pending_event* delivering_events;
+    size_t n_delivering_events;
+    size_t delivering_events_capacity;
 
     /* DMABUF import (video input ports added via _ex with DMABUF). When
      * set, the port negotiates DmaBuf buffers (no MAP_BUFFERS) and
@@ -157,6 +166,10 @@ struct tpw_filter {
     struct pw_filter* pw_filter;
     struct spa_hook filter_listener;
 
+    /* This lock guards what input-port pushes stage. The cycle only try-locks
+     * it, so the data thread never waits on an application thread. */
+    pthread_mutex_t push_lock;
+
     /* Set false, then true by .drained, around a draining
      * tpw_filter_stop()'s pw_filter_flush() call. */
     bool drained;
@@ -195,10 +208,16 @@ void tpw_filter_on_param_changed(void* data, void* port_data, uint32_t id, const
  * simply leave incoming_events empty for that cycle. */
 void tpw_filter_event_decode(struct tpw_filter_port* port, const void* data, size_t size);
 
-/* Moves `port`'s pending_events (staged via tpw_filter_port_push_event
- * on an input event port) into incoming_events for the current cycle
- * by aliasing their owned memory, in place of a real dequeue. */
-void tpw_filter_event_load_pending_as_incoming(struct tpw_filter_port* port);
+/* Swaps an input event port's pending_events into delivering_events, which
+ * must be empty. The caller holds the filter's push_lock. */
+void tpw_filter_event_take_pending(struct tpw_filter_port* port);
+
+/* Points incoming_events at delivering_events' owned memory for this cycle,
+ * in place of a real dequeue. */
+void tpw_filter_event_load_delivering_as_incoming(struct tpw_filter_port* port);
+
+/* Frees delivering_events' owned data once the cycle that delivered it ends. */
+void tpw_filter_event_clear_delivering(struct tpw_filter_port* port);
 
 /* Frees the owned data of every entry in `port`'s pending_events and
  * resets the list to empty. Safe to call when there is nothing staged. */
