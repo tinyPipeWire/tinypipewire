@@ -369,7 +369,8 @@ int tpw_filter_port_push_event(tpw_filter_port_h port, const tpw_event* event);
  * Lets application code (for example, a capture stream's data callback)
  * feed a filter directly. Only the most recently pushed buffer per port
  * is kept. Not valid for event ports — use tpw_filter_port_push_event()
- * instead.
+ * instead. A cycle that begins while another push to the filter is still
+ * being copied leaves the staged data to the cycle after it, never waiting.
  *
  * @param filter The filter owning `port`.
  * @param port   An input, non-event port on `filter`.

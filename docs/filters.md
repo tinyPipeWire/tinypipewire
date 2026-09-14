@@ -34,7 +34,10 @@ lets application code (for example, a `tpw_stream` capture callback) feed
 a filter's input port directly, with no PipeWire-level link involved. It
 is callable from any thread, including from inside the processing
 callback itself; the bytes are copied and delivered on the next cycle,
-and only the most recent push per port is kept.
+and only the most recent push per port is kept. The processing cycle
+runs on PipeWire's data thread and never waits for a push: a cycle that
+begins while another push to the same filter is still being copied
+leaves the staged data, or staged events, to the cycle after it.
 `tpw_filter_port_get_type()` reports which kind a given port handle was
 added as.
 
