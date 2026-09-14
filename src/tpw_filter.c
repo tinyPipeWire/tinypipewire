@@ -182,6 +182,8 @@ tpw_filter_h tpw_filter_create(const char* name, tpw_filter_process_cb callback,
     pw_filter_add_listener(filter->pw_filter, &filter->filter_listener, &tpw_filter_events, filter);
     pw_thread_loop_unlock(filter->conn.loop);
 
+    /* Ports need a created filter, so no push can reach the lock before this. */
+    pthread_mutex_init(&filter->push_lock, NULL);
     return (tpw_filter_h)filter;
 }
 
@@ -340,6 +342,7 @@ void tpw_filter_destroy(tpw_filter_h handle)
     for (size_t i = 0; i < filter->n_ports; i++) {
         if (filter->ports[i]) {
             free(filter->ports[i]->pushed_data);
+            free(filter->ports[i]->delivered_data);
             tpw_filter_event_free_port(filter->ports[i]);
         }
     }
@@ -347,6 +350,7 @@ void tpw_filter_destroy(tpw_filter_h handle)
 
     tpw_filter_teardown(filter);
 
+    pthread_mutex_destroy(&filter->push_lock);
     free(filter->name);
     free(filter);
     tpw_pw_global_deinit();

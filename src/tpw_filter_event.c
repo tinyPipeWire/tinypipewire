@@ -127,21 +127,45 @@ void tpw_filter_event_decode(struct tpw_filter_port* port, const void* data, siz
     }
 }
 
-void tpw_filter_event_load_pending_as_incoming(struct tpw_filter_port* port)
+void tpw_filter_event_take_pending(struct tpw_filter_port* port)
+{
+    struct tpw_filter_pending_event* events = port->delivering_events;
+    size_t capacity = port->delivering_events_capacity;
+
+    port->delivering_events = port->pending_events;
+    port->n_delivering_events = port->n_pending_events;
+    port->delivering_events_capacity = port->pending_events_capacity;
+
+    port->pending_events = events;
+    port->n_pending_events = 0;
+    port->pending_events_capacity = capacity;
+}
+
+void tpw_filter_event_load_delivering_as_incoming(struct tpw_filter_port* port)
 {
     port->n_incoming_events = 0;
-    for (size_t i = 0; i < port->n_pending_events; i++) {
-        struct tpw_filter_pending_event* pe = &port->pending_events[i];
+    for (size_t i = 0; i < port->n_delivering_events; i++) {
+        struct tpw_filter_pending_event* pe = &port->delivering_events[i];
         tpw_event ev = { pe->offset, pe->kind, pe->key, pe->data, pe->size };
         tpw_filter_incoming_event_append(port, &ev);
     }
 }
 
+static void tpw_filter_event_free_entries(struct tpw_filter_pending_event* events, size_t* n_events)
+{
+    for (size_t i = 0; i < *n_events; i++)
+        free(events[i].data);
+    *n_events = 0;
+}
+
 void tpw_filter_event_clear_pending(struct tpw_filter_port* port)
 {
-    for (size_t i = 0; i < port->n_pending_events; i++)
-        free(port->pending_events[i].data);
-    port->n_pending_events = 0;
+    tpw_filter_event_free_entries(port->pending_events, &port->n_pending_events);
+}
+
+void tpw_filter_event_clear_delivering(struct tpw_filter_port* port)
+{
+    tpw_filter_event_free_entries(port->delivering_events, &port->n_delivering_events);
 }
 
 static bool tpw_filter_pending_event_append(struct tpw_filter_port* port, const tpw_event* event)
@@ -224,7 +248,9 @@ void tpw_filter_event_free_port(struct tpw_filter_port* port)
     if (!port || port->media_type != TPW_STREAM_TYPE_EVENT)
         return;
     tpw_filter_event_clear_pending(port);
+    tpw_filter_event_clear_delivering(port);
     free(port->pending_events);
+    free(port->delivering_events);
     free(port->incoming_events);
 }
 
@@ -259,6 +285,14 @@ int tpw_filter_port_push_event(tpw_filter_port_h port_handle, const tpw_event* e
         return TPW_STREAM_ERR_INVALID_ARG;
 
     struct tpw_filter* filter = port->filter;
+    if (port->direction == TPW_FILTER_PORT_INPUT) {
+        /* The cycle swaps what is staged here, so the push lock is enough. */
+        pthread_mutex_lock(&filter->push_lock);
+        bool staged = tpw_filter_pending_event_append(port, event);
+        pthread_mutex_unlock(&filter->push_lock);
+        return staged ? TPW_STREAM_OK : TPW_STREAM_ERR_INVALID_ARG;
+    }
+
     /* An output port is pushed from inside the processing callback, which
      * already runs on the loop's own thread; locking there would deadlock. */
     bool lock = tpw_filter_processing != filter;
@@ -271,16 +305,14 @@ int tpw_filter_port_push_event(tpw_filter_port_h port_handle, const tpw_event* e
         return TPW_STREAM_ERR_INVALID_ARG;
     }
 
-    if (port->direction == TPW_FILTER_PORT_OUTPUT) {
-        /* Only meaningful with a real cycle's output buffer dequeued;
-         * reject rather than silently truncate at encode time. */
-        size_t needed = tpw_filter_event_encode(port, NULL, 0);
-        if (needed > port->event_output_capacity) {
-            tpw_filter_pending_event_pop_last(port);
-            if (lock)
-                pw_thread_loop_unlock(filter->conn.loop);
-            return TPW_STREAM_ERR_INVALID_ARG;
-        }
+    /* A push must fit the output buffer this cycle dequeued, so an oversized
+     * one is rejected here rather than silently truncated at encode time. */
+    size_t needed = tpw_filter_event_encode(port, NULL, 0);
+    if (needed > port->event_output_capacity) {
+        tpw_filter_pending_event_pop_last(port);
+        if (lock)
+            pw_thread_loop_unlock(filter->conn.loop);
+        return TPW_STREAM_ERR_INVALID_ARG;
     }
 
     if (lock)
