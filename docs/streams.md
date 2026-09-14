@@ -16,6 +16,7 @@ share the same creation, control, and data-callback functions.
 tpw_stream_h tpw_stream_create(tpw_stream_type type, tpw_stream_data_cb callback, void* user_data);
 int tpw_stream_set_error_cb(tpw_stream_h stream, tpw_stream_error_cb callback);
 int tpw_stream_set_target(tpw_stream_h stream, const char* target);
+int tpw_stream_set_role(tpw_stream_h stream, const char* role);
 int tpw_stream_set_audio_config(tpw_stream_h stream, const tpw_audio_config* config);
 int tpw_stream_set_video_config(tpw_stream_h stream, const tpw_video_config* config);
 int tpw_stream_start(tpw_stream_h stream);
@@ -76,6 +77,33 @@ nothing to do with how many targets exist. An empty graph is
 that only read buffers already delivered — `tpw_stream_get_dmabuf_planes()`
 and the filter's event and DMABUF readers — cannot fail that way, and keep
 returning their count directly.
+
+### Declaring a role
+
+`tpw_stream_set_role()` says what the stream is for — `"Music"`, `"Movie"`,
+`"Communication"`, `"Notification"` and so on — so a session manager with a
+role policy can route or duck it accordingly:
+
+```c
+tpw_stream_h s = tpw_stream_create_playback(on_fill, NULL);
+tpw_stream_set_role(s, "Notification");   /* before the format, like a target */
+tpw_stream_set_audio_config(s, &cfg);
+```
+
+The role becomes the node's `media.role` when the format connects the stream,
+so set it first; changing it afterwards does not reach the node already
+connected. NULL or `""` clears it. The value is a free-form string because the
+set of roles belongs to the session manager's configuration, not to PipeWire.
+
+Like a target, it is only a hint, and **nothing checks it**: PipeWire itself
+ignores the property, and so does a session manager with no role policy
+configured, so an unknown or unused role is `TPW_STREAM_OK` and changes
+nothing. Unlike a target it does not contradict manual wiring, so it is
+accepted whatever `tpw_stream_set_autoconnect()` says; there it simply labels
+the node for anyone inspecting the graph.
+
+It is most useful for audio playback, where role policies usually apply, but
+every stream accepts it.
 
 ### What a camera can deliver
 
