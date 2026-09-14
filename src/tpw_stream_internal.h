@@ -76,6 +76,7 @@ struct tpw_stream {
     void* user_data;
 
     char* target; /* PW_KEY_TARGET_OBJECT, or NULL for auto-connect */
+    char* role;   /* PW_KEY_MEDIA_ROLE, or NULL to declare none */
 
     /* Manual routing. `autoconnect` is true unless the application said it
      * would wire the stream itself; the rest is unused until it links. */
