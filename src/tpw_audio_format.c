@@ -26,6 +26,8 @@ int tpw_stream_set_audio_config(tpw_stream_h handle, const tpw_audio_config* con
     struct tpw_stream* stream = (struct tpw_stream*)handle;
     if (!stream || stream->type != TPW_STREAM_TYPE_AUDIO || !config)
         return TPW_STREAM_ERR_INVALID_ARG;
+    if (tpw_stream_refuse_in_callback(stream, true, __func__))
+        return TPW_STREAM_ERR_INVALID_ARG;
     if (config->sample_rate <= 0 || config->channels <= 0)
         return TPW_STREAM_ERR_INVALID_FORMAT;
 

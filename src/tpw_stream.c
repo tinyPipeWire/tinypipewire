@@ -8,6 +8,17 @@
 #include "tpw_log_internal.h"
 #include "tpw_stream_internal.h"
 
+_Thread_local const struct tpw_stream* tpw_stream_processing;
+
+bool tpw_stream_refuse_in_callback(const struct tpw_stream* stream, bool loop_thread_too, const char* call)
+{
+    bool refused = tpw_stream_processing == stream ||
+                   (loop_thread_too && stream->conn.loop && pw_thread_loop_in_thread(stream->conn.loop));
+    if (refused)
+        tpw_log_error("stream: %s() cannot be called from inside this stream's own callbacks", call);
+    return refused;
+}
+
 /* How long tpw_stream_stop(..., true) waits for a flush to actually drain
  * before giving up and stopping anyway. */
 #define TPW_STREAM_DRAIN_TIMEOUT_NSEC (5 * SPA_NSEC_PER_SEC)
@@ -292,7 +303,7 @@ int tpw_stream_set_role(tpw_stream_h handle, const char* role)
 int tpw_stream_start(tpw_stream_h handle)
 {
     struct tpw_stream* stream = (struct tpw_stream*)handle;
-    if (!stream)
+    if (!stream || tpw_stream_refuse_in_callback(stream, false, __func__))
         return TPW_STREAM_ERR_INVALID_ARG;
     if (!stream->format_set || !stream->pw_stream)
         return TPW_STREAM_ERR_NOT_CONFIGURED;
@@ -308,7 +319,7 @@ int tpw_stream_start(tpw_stream_h handle)
 int tpw_stream_stop(tpw_stream_h handle, bool drain)
 {
     struct tpw_stream* stream = (struct tpw_stream*)handle;
-    if (!stream)
+    if (!stream || tpw_stream_refuse_in_callback(stream, drain, __func__))
         return TPW_STREAM_ERR_INVALID_ARG;
     if (stream->state != TPW_STREAM_STATE_RUNNING)
         return TPW_STREAM_OK;
@@ -339,7 +350,7 @@ int tpw_stream_stop(tpw_stream_h handle, bool drain)
 void tpw_stream_destroy(tpw_stream_h handle)
 {
     struct tpw_stream* stream = (struct tpw_stream*)handle;
-    if (!stream)
+    if (!stream || tpw_stream_refuse_in_callback(stream, true, __func__))
         return;
 
     if (stream->state == TPW_STREAM_STATE_RUNNING)
