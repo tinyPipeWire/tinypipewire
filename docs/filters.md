@@ -191,9 +191,10 @@ int tpw_filter_port_unlink(tpw_filter_port_h port);
   `tpw_filter_destroy()` release every link, so `tpw_filter_port_unlink()`
   is only needed to re-target a port while the filter keeps running.
 - **Failures are clean and synchronous** — the call blocks until the link
-  negotiates. An unknown target gives `TPW_STREAM_ERR_INVALID_ARG` and a
-  format that cannot negotiate gives `TPW_STREAM_ERR_INVALID_FORMAT`; in
-  neither case is a partial link left behind. If a linked device later
+  negotiates. An unknown target gives `TPW_STREAM_ERR_NOT_FOUND`, a format
+  that cannot negotiate gives `TPW_STREAM_ERR_INVALID_FORMAT`, and a link that
+  does not negotiate in time gives `TPW_STREAM_ERR_TIMEOUT`; in no case is a
+  partial link left behind. If a linked device later
   disappears, the filter's error callback reports
   `TPW_STREAM_ERR_SOURCE_UNAVAILABLE` for that port, once, and never for a
   link your own unlink, stop or destroy released.

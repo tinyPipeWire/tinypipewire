@@ -333,6 +333,26 @@ there is no silent fallback to CPU-mapped delivery. This capability is
 video-capture-only; requesting it on an audio or playback stream is
 rejected the same way an ordinary video config is.
 
+## Error codes
+
+Every call that can fail returns a `tpw_stream_error`, and the filter calls
+return the same codes.
+
+| Code | What happened | What usually helps |
+| --- | --- | --- |
+| `TPW_STREAM_ERR_INVALID_ARG` | A NULL or out-of-range argument, or a call the object's current state or routing mode does not allow | Fix the call |
+| `TPW_STREAM_ERR_CONNECT_FAILED` | PipeWire could not be reached, or would not create the stream, link or query | Check that the daemon is running |
+| `TPW_STREAM_ERR_INVALID_FORMAT` | A format the library cannot name, or a link whose formats do not negotiate | Pick a format the target offers |
+| `TPW_STREAM_ERR_NOT_CONFIGURED` | A required earlier step is missing: a format before start, start before link, a link before unlink | Make that call first |
+| `TPW_STREAM_ERR_SOURCE_UNAVAILABLE` | Reported to the error callback when the source goes away or cannot provide the requested memory | Re-route or reconfigure |
+| `TPW_STREAM_ERR_IN_CALLBACK` | The call was made inside one of the object's own callbacks | Make it after the callback returns |
+| `TPW_STREAM_ERR_NOT_FOUND` | No node in the graph matches the target | List the targets again |
+| `TPW_STREAM_ERR_TIMEOUT` | PipeWire did not answer, or a link did not negotiate, in time | Retry the call |
+| `TPW_STREAM_ERR_NO_MEMORY` | A memory allocation failed | Free memory, or give up |
+
+Later releases may append codes, so treat one you do not recognize as a
+general failure.
+
 ## See also
 
 - [Filters](filters.md) — combining several sources into one processed output
