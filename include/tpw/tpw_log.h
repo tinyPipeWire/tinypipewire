@@ -3,6 +3,8 @@
 #ifndef TPW_LOG_H
 #define TPW_LOG_H
 
+#include "tpw/tpw_export.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -25,12 +27,12 @@ typedef void (*tpw_log_cb)(tpw_log_level level, const char* file, int line, cons
 /* Registers (or clears, with NULL) the process-wide log callback,
  * replacing whatever was set before. With no callback set, messages
  * are written to stderr instead. */
-void tpw_log_set_callback(tpw_log_cb callback, void* user_data);
+TPW_API void tpw_log_set_callback(tpw_log_cb callback, void* user_data);
 
 /* Sets the minimum severity delivered to the callback (or stderr);
  * messages less severe than `level` are dropped before formatting.
  * Default: TPW_LOG_WARNING. */
-void tpw_log_set_level(tpw_log_level level);
+TPW_API void tpw_log_set_level(tpw_log_level level);
 
 #ifdef __cplusplus
 }
