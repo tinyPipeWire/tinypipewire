@@ -24,13 +24,17 @@ static const char* link_result_text(int res)
     case TPW_STREAM_OK:
         return "linked";
     case TPW_STREAM_ERR_INVALID_ARG:
-        return "no such target, or the port cannot be linked (output port?)";
+        return "the port cannot be linked (an output port, or already linked?)";
+    case TPW_STREAM_ERR_NOT_FOUND:
+        return "no such target — check `wpctl status` or `pw-cli ls Node`";
     case TPW_STREAM_ERR_INVALID_FORMAT:
         return "target found, but the formats do not negotiate";
     case TPW_STREAM_ERR_NOT_CONFIGURED:
         return "the filter is not started — link after tpw_filter_start()";
+    case TPW_STREAM_ERR_TIMEOUT:
+        return "the link did not negotiate in time";
     case TPW_STREAM_ERR_CONNECT_FAILED:
-        return "the link could not be created or timed out";
+        return "the link could not be created";
     default:
         return "unknown error";
     }
