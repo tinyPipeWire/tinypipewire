@@ -19,6 +19,8 @@ unit_tests = [
   'test_filter_callback_push',
   'test_filter_push_order',
   'test_filter_push_race',
+  'test_filter_callback_calls',
+  'test_stream_callback_calls',
   'test_stream_playback',
   'test_stream_routing',
   'test_stream_role',
