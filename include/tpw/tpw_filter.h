@@ -53,7 +53,7 @@ typedef struct {
  *
  * Runs on PipeWire's real-time data thread, so it must not block. The push,
  * event and DMABUF calls belong here, but calls that take the filter's loop
- * lock are refused with TPW_STREAM_ERR_INVALID_ARG: start, stop, port link and
+ * lock are refused with TPW_STREAM_ERR_IN_CALLBACK: start, stop, port link and
  * unlink, and tpw_filter_get_target_video_formats(). tpw_filter_destroy() is
  * refused too and only logs, so destroy the filter after the callback returns.
  *
@@ -73,7 +73,7 @@ typedef void (*tpw_filter_process_cb)(tpw_filter_h filter, tpw_filter_port_buffe
  * never for the application's own unlink, stop or destroy. A stop without
  * drain and tpw_filter_port_unlink() work here. A draining stop,
  * tpw_filter_port_link() and tpw_filter_get_target_video_formats() would wait
- * on this thread, so they are refused with TPW_STREAM_ERR_INVALID_ARG, and
+ * on this thread, so they are refused with TPW_STREAM_ERR_IN_CALLBACK, and
  * tpw_filter_destroy() is refused and only logs.
  *
  * @param filter     The filter owning `port`.
@@ -172,7 +172,7 @@ TPW_API tpw_filter_port_h tpw_filter_add_audio_port(tpw_filter_h filter, tpw_fil
  * @param[out] out     Filled with up to `out_len` formats, or NULL to only count them.
  * @param[in]  out_len Capacity of `out`.
  * @param[out] found   The format count actually available, which may exceed `out_len` if it was too small; 0 on failure. A device reporting no format this library can name is TPW_STREAM_OK with 0, not an error.
- * @return TPW_STREAM_OK, TPW_STREAM_ERR_INVALID_ARG for a NULL filter, target or `found`, a target naming no node, or a call from inside a callback, or TPW_STREAM_ERR_CONNECT_FAILED when the query fails or times out.
+ * @return TPW_STREAM_OK, TPW_STREAM_ERR_INVALID_ARG for a NULL filter, target or `found`, or a target naming no node, TPW_STREAM_ERR_IN_CALLBACK from inside a callback, or TPW_STREAM_ERR_CONNECT_FAILED when the query fails or times out.
  */
 TPW_API int tpw_filter_get_target_video_formats(tpw_filter_h filter, const char* target,
                                                  tpw_video_format_info* out, size_t out_len,

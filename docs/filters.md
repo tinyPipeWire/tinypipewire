@@ -253,7 +253,7 @@ source, since nothing converts for it.
 The process callback and the error callback run on threads the library owns,
 and some calls cannot be made from there without deadlocking or tearing down
 the thread they run on. Those calls are refused with
-`TPW_STREAM_ERR_INVALID_ARG` and the reason is logged; `tpw_filter_destroy()`
+`TPW_STREAM_ERR_IN_CALLBACK` and the reason is logged; `tpw_filter_destroy()`
 has no return value, so it only logs and leaves the filter as it was.
 
 | Callback | Runs on | Refused inside it |
