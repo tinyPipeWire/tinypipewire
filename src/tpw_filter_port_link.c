@@ -145,8 +145,9 @@ int tpw_filter_get_target_video_formats(tpw_filter_h handle, const char* target,
         return TPW_STREAM_ERR_INVALID_ARG;
     if (tpw_filter_refuse_in_callback(filter, true, __func__))
         return TPW_STREAM_ERR_IN_CALLBACK;
-    if (tpw_pw_registry_bind(&filter->registry, &filter->conn) < 0)
-        return TPW_STREAM_ERR_CONNECT_FAILED;
+    int bound = tpw_pw_registry_bind(&filter->registry, &filter->conn);
+    if (bound < 0)
+        return tpw_pw_error_from_sync(bound);
 
     /* Formats belong to the node, so a named port only helps find it. */
     const char* port_name = NULL;
@@ -267,8 +268,9 @@ int tpw_filter_port_link(tpw_filter_port_h port_handle, const char* target)
     if (!filter || filter->state != TPW_FILTER_STATE_RUNNING)
         return TPW_STREAM_ERR_NOT_CONFIGURED;
 
-    if (tpw_pw_registry_bind(&filter->registry, &filter->conn) < 0)
-        return TPW_STREAM_ERR_CONNECT_FAILED;
+    int bound = tpw_pw_registry_bind(&filter->registry, &filter->conn);
+    if (bound < 0)
+        return tpw_pw_error_from_sync(bound);
 
     uint32_t target_port_id = 0;
     uint32_t target_node_id = tpw_resolve_target(filter, target, &target_port_id);
@@ -326,13 +328,13 @@ int tpw_filter_port_link(tpw_filter_port_h port_handle, const char* target)
     pw_thread_loop_get_time(filter->conn.loop, &deadline, TPW_LINK_TIMEOUT_NSEC);
     while (!wait.done) {
         if (pw_thread_loop_timed_wait_full(filter->conn.loop, &deadline) < 0) {
-            wait.result = TPW_STREAM_ERR_CONNECT_FAILED;
+            wait.result = TPW_STREAM_ERR_TIMEOUT;
             break;
         }
     }
     port->link_wait = NULL;
 
-    int result = wait.done ? wait.result : TPW_STREAM_ERR_CONNECT_FAILED;
+    int result = wait.done ? wait.result : TPW_STREAM_ERR_TIMEOUT;
     if (result != TPW_STREAM_OK)
         tpw_filter_port_link_release(port);
 

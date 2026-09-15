@@ -86,7 +86,7 @@ static int tpw_stream_await_own_ports(struct tpw_stream* stream, size_t expected
         if (pw_thread_loop_timed_wait_full(stream->conn.loop, &deadline) < 0) {
             pw_thread_loop_unlock(stream->conn.loop);
             tpw_log_error("stream: timed out waiting for this stream to appear in the graph");
-            return TPW_STREAM_ERR_CONNECT_FAILED;
+            return TPW_STREAM_ERR_TIMEOUT;
         }
     }
 
@@ -135,8 +135,9 @@ int tpw_stream_get_target_list(tpw_stream_h handle, tpw_target_info* out, size_t
         return TPW_STREAM_ERR_INVALID_ARG;
     if (tpw_stream_refuse_in_callback(stream, true, __func__))
         return TPW_STREAM_ERR_IN_CALLBACK;
-    if (tpw_pw_registry_bind(&stream->registry, &stream->conn) < 0)
-        return TPW_STREAM_ERR_CONNECT_FAILED;
+    int bound = tpw_pw_registry_bind(&stream->registry, &stream->conn);
+    if (bound < 0)
+        return tpw_pw_error_from_sync(bound);
 
     const char* media_class = tpw_stream_target_media_class(stream);
 
@@ -179,8 +180,9 @@ int tpw_stream_get_target_video_formats(tpw_stream_h handle, const char* target,
     const char* name = target ? target : stream->target;
     if (!name)
         return TPW_STREAM_ERR_INVALID_ARG;
-    if (tpw_pw_registry_bind(&stream->registry, &stream->conn) < 0)
-        return TPW_STREAM_ERR_CONNECT_FAILED;
+    int bound = tpw_pw_registry_bind(&stream->registry, &stream->conn);
+    if (bound < 0)
+        return tpw_pw_error_from_sync(bound);
 
     uint32_t node_id = tpw_stream_resolve_target(stream, name);
     if (!node_id) {
@@ -271,7 +273,7 @@ static int tpw_stream_link_one(struct tpw_stream* stream, struct tpw_stream_link
     int res = TPW_STREAM_OK;
     while (!link->seen_active && !link->lost) {
         if (pw_thread_loop_timed_wait_full(stream->conn.loop, &deadline) < 0) {
-            res = TPW_STREAM_ERR_CONNECT_FAILED;
+            res = TPW_STREAM_ERR_TIMEOUT;
             break;
         }
     }
@@ -297,8 +299,9 @@ int tpw_stream_link(tpw_stream_h handle, const char* target)
     if (stream->state != TPW_STREAM_STATE_RUNNING || !stream->pw_stream)
         return TPW_STREAM_ERR_NOT_CONFIGURED; /* the graph is where we look things up */
 
-    if (tpw_pw_registry_bind(&stream->registry, &stream->conn) < 0)
-        return TPW_STREAM_ERR_CONNECT_FAILED;
+    int bound = tpw_pw_registry_bind(&stream->registry, &stream->conn);
+    if (bound < 0)
+        return tpw_pw_error_from_sync(bound);
     stream->registry.port_added_cb = tpw_stream_on_port_added;
     stream->registry.port_added_data = stream;
     stream->registry.node_removed_cb = tpw_stream_on_node_removed;
