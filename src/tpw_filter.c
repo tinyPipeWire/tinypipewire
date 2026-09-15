@@ -92,6 +92,16 @@ bool tpw_filter_claim_source_loss(struct tpw_filter* filter, struct tpw_filter_p
     return true;
 }
 
+bool tpw_filter_refuse_in_callback(const struct tpw_filter* filter, bool loop_thread_too, const char* call)
+{
+    bool refused = tpw_filter_processing == filter ||
+                   (loop_thread_too && filter->conn.loop && pw_thread_loop_in_thread(filter->conn.loop));
+    if (refused)
+        tpw_log_error("filter '%s': %s() cannot be called from inside this filter's own callbacks",
+                      filter->name ? filter->name : "tpw-filter", call);
+    return refused;
+}
+
 /* Wakes a draining tpw_filter_stop(..., true), waiting on this same flag
  * under filter->conn.loop's lock. */
 static void tpw_filter_on_drained(void* data)
@@ -253,7 +263,7 @@ static void tpw_filter_apply_period_hint(struct tpw_filter* filter)
 int tpw_filter_start(tpw_filter_h handle)
 {
     struct tpw_filter* filter = (struct tpw_filter*)handle;
-    if (!filter)
+    if (!filter || tpw_filter_refuse_in_callback(filter, false, __func__))
         return TPW_STREAM_ERR_INVALID_ARG;
     if (filter->n_ports == 0)
         return TPW_STREAM_ERR_NOT_CONFIGURED;
@@ -283,7 +293,7 @@ int tpw_filter_start(tpw_filter_h handle)
 int tpw_filter_stop(tpw_filter_h handle, bool drain)
 {
     struct tpw_filter* filter = (struct tpw_filter*)handle;
-    if (!filter)
+    if (!filter || tpw_filter_refuse_in_callback(filter, drain, __func__))
         return TPW_STREAM_ERR_INVALID_ARG;
     if (filter->state != TPW_FILTER_STATE_RUNNING)
         return TPW_STREAM_OK;
@@ -334,7 +344,7 @@ int tpw_filter_stop(tpw_filter_h handle, bool drain)
 void tpw_filter_destroy(tpw_filter_h handle)
 {
     struct tpw_filter* filter = (struct tpw_filter*)handle;
-    if (!filter)
+    if (!filter || tpw_filter_refuse_in_callback(filter, true, __func__))
         return;
 
     if (filter->state == TPW_FILTER_STATE_RUNNING)

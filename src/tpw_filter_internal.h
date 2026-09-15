@@ -199,6 +199,10 @@ void tpw_filter_on_process(void* data, struct spa_io_position* position);
  * against PipeWire's own buffer setup, so the push helpers skip it. */
 extern _Thread_local const struct tpw_filter* tpw_filter_processing;
 
+/* Refuses a call from inside `filter`'s process callback, and also from its loop
+ * thread when `loop_thread_too`, where the call would wait on that thread. Logs `call` on refusal. */
+bool tpw_filter_refuse_in_callback(const struct tpw_filter* filter, bool loop_thread_too, const char* call);
+
 /* Claims the single report of `port` losing its source while the filter runs.
  * Returns false when it was already reported, or the application released the link itself. */
 bool tpw_filter_claim_source_loss(struct tpw_filter* filter, struct tpw_filter_port* port);
