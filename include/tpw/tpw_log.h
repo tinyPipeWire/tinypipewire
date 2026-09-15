@@ -18,10 +18,8 @@ typedef enum {
     TPW_LOG_VERBOSE = 4
 } tpw_log_level;
 
-/* Receives one already-formatted message from the library, tagged
- * with the source file (basename) and line that logged it, mirroring
- * PipeWire's own file/line-tagged log output. `file` and `message`
- * are valid only for the duration of this call. */
+/* Receives one formatted message tagged with the logging file's basename and line, both valid only for
+ * this call. It can run on any thread, a real-time data thread included, so it must not block. */
 typedef void (*tpw_log_cb)(tpw_log_level level, const char* file, int line, const char* message, void* user_data);
 
 /* Registers (or clears, with NULL) the process-wide log callback,

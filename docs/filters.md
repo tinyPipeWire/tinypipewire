@@ -195,7 +195,11 @@ int tpw_filter_port_unlink(tpw_filter_port_h port);
   format that cannot negotiate gives `TPW_STREAM_ERR_INVALID_FORMAT`; in
   neither case is a partial link left behind. If a linked device later
   disappears, the filter's error callback reports
-  `TPW_STREAM_ERR_SOURCE_UNAVAILABLE` for that port.
+  `TPW_STREAM_ERR_SOURCE_UNAVAILABLE` for that port, once, and never for a
+  link your own unlink, stop or destroy released.
+- **Filters can link to each other** — a filter's node is named after the
+  `name` given to `tpw_filter_create()`, so another filter's input port can
+  link to its output port by that name.
 
 Remember that an audio device links to a **signal** port, not an audio
 port — see [the note above](#driving-the-bundle-with-a-real-audio-device).
@@ -243,6 +247,24 @@ its guarantees are the same as the stream's — see
 the reason there is no audio counterpart, though for filters the caveat
 cuts the other way: a filter's audio port really does need to match its
 source, since nothing converts for it.
+
+## Calling the library from a callback
+
+The process callback and the error callback run on threads the library owns,
+and some calls cannot be made from there without deadlocking or tearing down
+the thread they run on. Those calls are refused with
+`TPW_STREAM_ERR_INVALID_ARG` and the reason is logged; `tpw_filter_destroy()`
+has no return value, so it only logs and leaves the filter as it was.
+
+| Callback | Runs on | Refused inside it |
+| --- | --- | --- |
+| process | PipeWire's real-time data thread | start, stop, destroy, port link and unlink, `tpw_filter_get_target_video_formats()` |
+| error | the filter's loop thread | destroy, port link, `tpw_filter_get_target_video_formats()`, a draining stop |
+
+The push, event and DMABUF calls are what the process callback is for, and a
+stop without drain or `tpw_filter_port_unlink()` works in the error callback.
+To link a port somewhere else after its source is lost, leave the error
+callback first and link from your own thread.
 
 ## See also
 

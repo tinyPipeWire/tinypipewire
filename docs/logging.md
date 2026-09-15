@@ -26,6 +26,11 @@ void my_logger(tpw_log_level level, const char* file, int line, const char* mess
 tpw_log_set_callback(my_logger, NULL);
 ```
 
+The callback runs on whichever thread logged the message, and some messages,
+such as a playback callback overrunning its cycle, are logged from a stream's
+or filter's real-time data thread. Keep the callback from blocking: if your
+logger writes to a file or a socket, hand the message to another thread.
+
 ## See also
 
 - [Streams](streams.md) — single-source capture and audio playback

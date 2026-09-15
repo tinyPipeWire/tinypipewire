@@ -50,6 +50,13 @@ typedef struct {
 
 /**
  * @brief Invoked once per processing cycle with every port's buffer.
+ *
+ * Runs on PipeWire's real-time data thread, so it must not block. The push,
+ * event and DMABUF calls belong here, but calls that take the filter's loop
+ * lock are refused with TPW_STREAM_ERR_INVALID_ARG: start, stop, port link and
+ * unlink, and tpw_filter_get_target_video_formats(). tpw_filter_destroy() is
+ * refused too and only logs, so destroy the filter after the callback returns.
+ *
  * @param filter    The filter running this cycle.
  * @param buffers   One entry per port; valid only for the duration of this call.
  * @param n_buffers Number of entries in `buffers`.
@@ -61,6 +68,14 @@ typedef void (*tpw_filter_process_cb)(tpw_filter_h filter, tpw_filter_port_buffe
 /**
  * @brief Reports that `port` on `filter` became unavailable while
  *        running; the filter's other ports are unaffected.
+ *
+ * Runs on the filter's loop thread, once per source an input port loses, and
+ * never for the application's own unlink, stop or destroy. A stop without
+ * drain and tpw_filter_port_unlink() work here. A draining stop,
+ * tpw_filter_port_link() and tpw_filter_get_target_video_formats() would wait
+ * on this thread, so they are refused with TPW_STREAM_ERR_INVALID_ARG, and
+ * tpw_filter_destroy() is refused and only logs.
+ *
  * @param filter     The filter owning `port`.
  * @param port       The port that became unavailable.
  * @param error_code A tpw_stream_error, currently always TPW_STREAM_ERR_SOURCE_UNAVAILABLE.
@@ -107,12 +122,12 @@ typedef struct {
 } tpw_event;
 
 /**
- * @brief Creates an empty filter (no ports yet), discoverable by `name`
- *        for cross-application routing.
+ * @brief Creates an empty filter (no ports yet) whose node other
+ *        applications and tpw_filter_port_link() find by `name`.
  *
  * Internally owns and manages its own PipeWire thread-loop/context/core.
  *
- * @param name      Discoverable node name; may be NULL/empty.
+ * @param name      The node's name (node.name); NULL or empty leaves PipeWire's default, the process name.
  * @param callback  Invoked once per processing cycle after tpw_filter_start().
  * @param user_data Passed unchanged to `callback`.
  * @return A new filter handle, or NULL if PipeWire cannot be reached.
@@ -157,7 +172,7 @@ TPW_API tpw_filter_port_h tpw_filter_add_audio_port(tpw_filter_h filter, tpw_fil
  * @param[out] out     Filled with up to `out_len` formats, or NULL to only count them.
  * @param[in]  out_len Capacity of `out`.
  * @param[out] found   The format count actually available, which may exceed `out_len` if it was too small; 0 on failure. A device reporting no format this library can name is TPW_STREAM_OK with 0, not an error.
- * @return TPW_STREAM_OK, TPW_STREAM_ERR_INVALID_ARG for a NULL filter, target or `found`, or a target naming no node, or TPW_STREAM_ERR_CONNECT_FAILED when the query fails or times out.
+ * @return TPW_STREAM_OK, TPW_STREAM_ERR_INVALID_ARG for a NULL filter, target or `found`, a target naming no node, or a call from inside a callback, or TPW_STREAM_ERR_CONNECT_FAILED when the query fails or times out.
  */
 TPW_API int tpw_filter_get_target_video_formats(tpw_filter_h filter, const char* target,
                                                  tpw_video_format_info* out, size_t out_len,
@@ -257,7 +272,7 @@ TPW_API int tpw_filter_set_period_hint(tpw_filter_h filter, uint32_t max_period_
  *
  * Must be called after tpw_filter_start(), unlike the other port calls,
  * because the target is looked up in the running graph. Blocks until the
- * link negotiates.
+ * link negotiates, which is why it is refused from the filter's own callbacks.
  *
  * @param port   An input port on a started filter.
  * @param target A node name, an object.serial, or "node:port"; naming only a node lets PipeWire pick a compatible port.
@@ -270,7 +285,7 @@ TPW_API int tpw_filter_port_link(tpw_filter_port_h port, const char* target);
  *        re-target it while running; stop and destroy release every
  *        link themselves.
  * @param port The linked port to unlink.
- * @return TPW_STREAM_OK, or a tpw_stream_error when the port has no link.
+ * @return TPW_STREAM_OK, or a tpw_stream_error when the port has no link or the call comes from the process callback.
  */
 TPW_API int tpw_filter_port_unlink(tpw_filter_port_h port);
 
@@ -386,7 +401,7 @@ TPW_API int tpw_filter_push_port_data(tpw_filter_h filter, tpw_filter_port_h por
 /**
  * @brief Starts processing. Fails if the filter has zero ports.
  *
- * Safe to call again after stop().
+ * Safe to call again after stop(). It is refused from the process callback.
  *
  * @param filter The filter to start.
  * @return TPW_STREAM_OK, or a tpw_stream_error.
@@ -400,7 +415,8 @@ TPW_API int tpw_filter_start(tpw_filter_h filter);
  * actually been sent out an output port or handed to the processing
  * callback on an input port, so nothing already queued is lost. If
  * that does not complete within a few seconds, a warning is logged
- * and the filter stops anyway.
+ * and the filter stops anyway. It is refused from the process callback, and a
+ * draining stop from the error callback too.
  *
  * @param filter The filter to stop.
  * @param drain  true to wait for what is already queued to finish first.
@@ -414,6 +430,8 @@ TPW_API int tpw_filter_stop(tpw_filter_h filter, bool drain);
  *        running.
  *
  * `filter` and any of its port handles are invalid after this returns.
+ * Called from inside one of the filter's own callbacks it only logs, and the
+ * filter is left as it was.
  *
  * @param filter The filter to destroy; NULL is a no-op.
  */
