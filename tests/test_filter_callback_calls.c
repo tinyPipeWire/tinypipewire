@@ -178,7 +178,7 @@ static void test_calls_refused_in_process_callback(void)
 
     TPW_ASSERT(wait_for(&s.calls_done, 1));
     for (int i = 0; i < N_CALLS; i++)
-        TPW_ASSERT_EQ(s.results[i], TPW_STREAM_ERR_INVALID_ARG);
+        TPW_ASSERT_EQ(s.results[i], TPW_STREAM_ERR_IN_CALLBACK);
     TPW_ASSERT(s.link_ms < 1000.0);
 
     int cycles = atomic_load(&s.cycles);
@@ -199,8 +199,8 @@ static void test_calls_refused_in_error_callback(void)
 
     tpw_filter_destroy(src);
     TPW_ASSERT(wait_for(&s.calls_done, 1));
-    TPW_ASSERT_EQ(s.results[CALL_FORMATS], TPW_STREAM_ERR_INVALID_ARG);
-    TPW_ASSERT_EQ(s.results[CALL_LINK], TPW_STREAM_ERR_INVALID_ARG);
+    TPW_ASSERT_EQ(s.results[CALL_FORMATS], TPW_STREAM_ERR_IN_CALLBACK);
+    TPW_ASSERT_EQ(s.results[CALL_LINK], TPW_STREAM_ERR_IN_CALLBACK);
     TPW_ASSERT(s.link_ms < 1000.0); /* It is refused at once rather than after the link timeout. */
     TPW_ASSERT_EQ(s.results[CALL_STOP], TPW_STREAM_OK);
 

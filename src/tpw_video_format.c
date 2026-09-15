@@ -10,7 +10,7 @@ int tpw_stream_set_video_config_ex(tpw_stream_h handle, const tpw_video_config* 
     if (!stream || stream->type != TPW_STREAM_TYPE_VIDEO || !config || !config->pixel_format)
         return TPW_STREAM_ERR_INVALID_ARG;
     if (tpw_stream_refuse_in_callback(stream, true, __func__))
-        return TPW_STREAM_ERR_INVALID_ARG;
+        return TPW_STREAM_ERR_IN_CALLBACK;
     /* Playback is audio-only, so a video format has nothing to connect to. */
     if (stream->direction != TPW_STREAM_DIRECTION_CAPTURE)
         return TPW_STREAM_ERR_INVALID_ARG;

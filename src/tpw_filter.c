@@ -263,8 +263,10 @@ static void tpw_filter_apply_period_hint(struct tpw_filter* filter)
 int tpw_filter_start(tpw_filter_h handle)
 {
     struct tpw_filter* filter = (struct tpw_filter*)handle;
-    if (!filter || tpw_filter_refuse_in_callback(filter, false, __func__))
+    if (!filter)
         return TPW_STREAM_ERR_INVALID_ARG;
+    if (tpw_filter_refuse_in_callback(filter, false, __func__))
+        return TPW_STREAM_ERR_IN_CALLBACK;
     if (filter->n_ports == 0)
         return TPW_STREAM_ERR_NOT_CONFIGURED;
 
@@ -293,8 +295,10 @@ int tpw_filter_start(tpw_filter_h handle)
 int tpw_filter_stop(tpw_filter_h handle, bool drain)
 {
     struct tpw_filter* filter = (struct tpw_filter*)handle;
-    if (!filter || tpw_filter_refuse_in_callback(filter, drain, __func__))
+    if (!filter)
         return TPW_STREAM_ERR_INVALID_ARG;
+    if (tpw_filter_refuse_in_callback(filter, drain, __func__))
+        return TPW_STREAM_ERR_IN_CALLBACK;
     if (filter->state != TPW_FILTER_STATE_RUNNING)
         return TPW_STREAM_OK;
 

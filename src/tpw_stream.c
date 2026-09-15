@@ -303,8 +303,10 @@ int tpw_stream_set_role(tpw_stream_h handle, const char* role)
 int tpw_stream_start(tpw_stream_h handle)
 {
     struct tpw_stream* stream = (struct tpw_stream*)handle;
-    if (!stream || tpw_stream_refuse_in_callback(stream, false, __func__))
+    if (!stream)
         return TPW_STREAM_ERR_INVALID_ARG;
+    if (tpw_stream_refuse_in_callback(stream, false, __func__))
+        return TPW_STREAM_ERR_IN_CALLBACK;
     if (!stream->format_set || !stream->pw_stream)
         return TPW_STREAM_ERR_NOT_CONFIGURED;
 
@@ -319,8 +321,10 @@ int tpw_stream_start(tpw_stream_h handle)
 int tpw_stream_stop(tpw_stream_h handle, bool drain)
 {
     struct tpw_stream* stream = (struct tpw_stream*)handle;
-    if (!stream || tpw_stream_refuse_in_callback(stream, drain, __func__))
+    if (!stream)
         return TPW_STREAM_ERR_INVALID_ARG;
+    if (tpw_stream_refuse_in_callback(stream, drain, __func__))
+        return TPW_STREAM_ERR_IN_CALLBACK;
     if (stream->state != TPW_STREAM_STATE_RUNNING)
         return TPW_STREAM_OK;
 
