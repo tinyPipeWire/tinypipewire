@@ -62,6 +62,7 @@ void tpw_filter_on_param_changed(void* data, void* port_data, uint32_t id, const
         /* Format negotiated. A DMABUF port advertises its DmaBuf Buffers
          * param now (deferred from add time, which crashes 1.0.5); a
          * no-op for every other port. */
+        port->loss_reported = false;
         tpw_filter_check_negotiated_video(filter, port, param);
         tpw_filter_dmabuf_update_params(port);
         return;
@@ -69,6 +70,9 @@ void tpw_filter_on_param_changed(void* data, void* port_data, uint32_t id, const
 
     /* param == NULL: the port's negotiated format was cleared — its source
      * is gone, or a DMABUF port's source could not provide DMABUF. */
+    /* An output port's format also clears when its consumer leaves, which loses no source. */
+    if (port->direction != TPW_FILTER_PORT_INPUT || !tpw_filter_claim_source_loss(filter, port))
+        return;
     if (port->use_dmabuf)
         tpw_filter_dmabuf_log_unavailable(port);
     else
@@ -78,6 +82,14 @@ void tpw_filter_on_param_changed(void* data, void* port_data, uint32_t id, const
     if (filter->error_cb)
         filter->error_cb((tpw_filter_h)filter, (tpw_filter_port_h)port, TPW_STREAM_ERR_SOURCE_UNAVAILABLE,
                           filter->user_data);
+}
+
+bool tpw_filter_claim_source_loss(struct tpw_filter* filter, struct tpw_filter_port* port)
+{
+    if (filter->state != TPW_FILTER_STATE_RUNNING || port->loss_reported)
+        return false;
+    port->loss_reported = true;
+    return true;
 }
 
 /* Wakes a draining tpw_filter_stop(..., true), waiting on this same flag
@@ -309,13 +321,13 @@ int tpw_filter_stop(tpw_filter_h handle, bool drain)
         port->held_dmabuf_buf = NULL;
         port->current_dmabuf_buf = NULL;
     }
+    /* Set before the links go, so the formats they clear are not reported as lost sources. */
+    filter->state = TPW_FILTER_STATE_STOPPED;
     pw_thread_loop_unlock(filter->conn.loop);
 
     /* Links were made against the running graph and a restart re-links
      * explicitly, so they are dropped only now that processing is paused. */
     tpw_filter_release_all_links(filter);
-
-    filter->state = TPW_FILTER_STATE_STOPPED;
     return TPW_STREAM_OK;
 }
 
