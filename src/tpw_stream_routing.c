@@ -379,7 +379,7 @@ int tpw_stream_unlink(tpw_stream_h handle)
     if (tpw_stream_refuse_in_callback(stream, false, __func__))
         return TPW_STREAM_ERR_IN_CALLBACK;
     if (!stream->links)
-        return TPW_STREAM_ERR_INVALID_ARG;
+        return TPW_STREAM_ERR_NOT_CONFIGURED;
 
     tpw_stream_release_links(stream);
     return TPW_STREAM_OK;

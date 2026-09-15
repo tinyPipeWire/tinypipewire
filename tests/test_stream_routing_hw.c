@@ -149,7 +149,7 @@ static void exercise(tpw_stream_h s, const char* device)
     TPW_ASSERT_EQ(tpw_stream_unlink(s), TPW_STREAM_OK);
     usleep(SETTLE_USEC);
     TPW_ASSERT_EQ(links_to(device), before);
-    TPW_ASSERT_EQ(tpw_stream_unlink(s), TPW_STREAM_ERR_INVALID_ARG);
+    TPW_ASSERT_EQ(tpw_stream_unlink(s), TPW_STREAM_ERR_NOT_CONFIGURED);
 
     /* And it can be wired again afterwards. */
     TPW_ASSERT_EQ(tpw_stream_link(s, device), TPW_STREAM_OK);
