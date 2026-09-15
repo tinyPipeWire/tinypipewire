@@ -75,10 +75,10 @@ static void test_unresolvable_target(void)
     TPW_ASSERT_EQ(tpw_filter_start(handle), TPW_STREAM_OK);
 
     /* Neither a bare node name nor its "node:port" form resolves. */
-    TPW_ASSERT_EQ(tpw_filter_port_link(in, ABSENT_NODE), TPW_STREAM_ERR_INVALID_ARG);
-    TPW_ASSERT_EQ(tpw_filter_port_link(in, ABSENT_NODE ":capture_FL"), TPW_STREAM_ERR_INVALID_ARG);
+    TPW_ASSERT_EQ(tpw_filter_port_link(in, ABSENT_NODE), TPW_STREAM_ERR_NOT_FOUND);
+    TPW_ASSERT_EQ(tpw_filter_port_link(in, ABSENT_NODE ":capture_FL"), TPW_STREAM_ERR_NOT_FOUND);
     /* An all-digit target is read as an object.serial; this one is nobody's. */
-    TPW_ASSERT_EQ(tpw_filter_port_link(in, "4294967290"), TPW_STREAM_ERR_INVALID_ARG);
+    TPW_ASSERT_EQ(tpw_filter_port_link(in, "4294967290"), TPW_STREAM_ERR_NOT_FOUND);
 
     /* A failed link leaves no partial state behind, so there is still
      * nothing to unlink. */
