@@ -102,7 +102,7 @@ int tpw_filter_push_port_data(tpw_filter_h handle, tpw_filter_port_h port_handle
             pthread_mutex_unlock(&filter->push_lock);
             tpw_log_error("filter '%s': failed to grow push buffer to %zu bytes",
                           filter->name ? filter->name : "tpw-filter", size);
-            return TPW_STREAM_ERR_INVALID_ARG;
+            return TPW_STREAM_ERR_NO_MEMORY;
         }
         port->pushed_data = grown;
         port->pushed_capacity = size;

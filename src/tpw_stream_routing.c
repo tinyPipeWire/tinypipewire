@@ -250,7 +250,7 @@ static int tpw_stream_link_one(struct tpw_stream* stream, struct tpw_stream_link
         pw_properties_new(PW_KEY_LINK_OUTPUT_NODE, on, PW_KEY_LINK_OUTPUT_PORT, op,
                           PW_KEY_LINK_INPUT_NODE, in, PW_KEY_LINK_INPUT_PORT, ip, NULL);
     if (!props)
-        return TPW_STREAM_ERR_CONNECT_FAILED;
+        return TPW_STREAM_ERR_NO_MEMORY;
 
     link->stream = stream;
     link->seen_active = false;
@@ -341,11 +341,11 @@ int tpw_stream_link(tpw_stream_h handle, const char* target)
 
     struct tpw_stream_link_set* set = calloc(1, sizeof(*set));
     if (!set)
-        return TPW_STREAM_ERR_CONNECT_FAILED;
+        return TPW_STREAM_ERR_NO_MEMORY;
     set->links = calloc(pairs, sizeof(*set->links));
     if (!set->links) {
         free(set);
-        return TPW_STREAM_ERR_CONNECT_FAILED;
+        return TPW_STREAM_ERR_NO_MEMORY;
     }
     set->target_node_id = target_node;
     stream->links = set;

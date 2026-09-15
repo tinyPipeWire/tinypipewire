@@ -296,7 +296,7 @@ int tpw_filter_port_link(tpw_filter_port_h port_handle, const char* target)
                                                      PW_KEY_LINK_INPUT_PORT, in_port,
                                                      PW_KEY_LINK_OUTPUT_NODE, out_node, NULL);
     if (!props)
-        return TPW_STREAM_ERR_CONNECT_FAILED;
+        return TPW_STREAM_ERR_NO_MEMORY;
     /* Only unset when the target's ports have not shown up yet; then the
      * core's link factory picks one on the target node. */
     if (target_port_id) {

@@ -245,7 +245,7 @@ static int tpw_stream_replace_string(char** slot, const char* value)
     if (value && *value) {
         copy = strdup(value);
         if (!copy)
-            return TPW_STREAM_ERR_INVALID_ARG;
+            return TPW_STREAM_ERR_NO_MEMORY;
     }
 
     free(*slot);

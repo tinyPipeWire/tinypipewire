@@ -46,7 +46,8 @@ typedef enum {
     TPW_STREAM_ERR_SOURCE_UNAVAILABLE = -5, /**< The connected source disappeared, or could not provide the requested memory type (see tpw_stream_error_cb). */
     TPW_STREAM_ERR_IN_CALLBACK        = -6, /**< Called from inside one of the object's own callbacks, where the call cannot run; call it again after the callback returns. */
     TPW_STREAM_ERR_NOT_FOUND          = -7, /**< No node in the graph matches the target name or serial; it may have gone away or never existed. */
-    TPW_STREAM_ERR_TIMEOUT            = -8  /**< PipeWire did not answer, or a link did not negotiate, within the library's time limit; the same call may succeed if retried. */
+    TPW_STREAM_ERR_TIMEOUT            = -8, /**< PipeWire did not answer, or a link did not negotiate, within the library's time limit; the same call may succeed if retried. */
+    TPW_STREAM_ERR_NO_MEMORY          = -9  /**< A memory allocation failed. */
 } tpw_stream_error;
 
 /**
