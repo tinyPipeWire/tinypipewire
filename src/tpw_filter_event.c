@@ -290,7 +290,7 @@ int tpw_filter_port_push_event(tpw_filter_port_h port_handle, const tpw_event* e
         pthread_mutex_lock(&filter->push_lock);
         bool staged = tpw_filter_pending_event_append(port, event);
         pthread_mutex_unlock(&filter->push_lock);
-        return staged ? TPW_STREAM_OK : TPW_STREAM_ERR_INVALID_ARG;
+        return staged ? TPW_STREAM_OK : TPW_STREAM_ERR_NO_MEMORY;
     }
 
     /* An output port is pushed from inside the processing callback, which
@@ -302,7 +302,7 @@ int tpw_filter_port_push_event(tpw_filter_port_h port_handle, const tpw_event* e
     if (!tpw_filter_pending_event_append(port, event)) {
         if (lock)
             pw_thread_loop_unlock(filter->conn.loop);
-        return TPW_STREAM_ERR_INVALID_ARG;
+        return TPW_STREAM_ERR_NO_MEMORY;
     }
 
     /* A push must fit the output buffer this cycle dequeued, so an oversized
