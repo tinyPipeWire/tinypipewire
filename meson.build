@@ -1,5 +1,5 @@
 project('tinypipewire', 'c',
-  version: '0.9.1',
+  version: '0.10.0',
   license: 'MIT',
   default_options: [
     'c_std=c11',
