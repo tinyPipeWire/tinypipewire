@@ -71,7 +71,7 @@ int main(void)
     TPW_ASSERT_EQ(tpw_filter_start(filter), TPW_STREAM_OK);
 
     /* Setting hold after start is rejected. */
-    TPW_ASSERT_EQ(tpw_filter_port_set_hold(g_hold_port, true), TPW_STREAM_ERR_NOT_CONFIGURED);
+    TPW_ASSERT_EQ(tpw_filter_port_set_hold(g_hold_port, true), TPW_STREAM_ERR_INVALID_ARG);
 
     /* Phase A: before any buffer, a hold port reports no buffer (not a
      * stale/invalid one) — same as a non-hold port. */

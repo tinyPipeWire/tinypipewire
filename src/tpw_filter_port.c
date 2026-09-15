@@ -248,7 +248,7 @@ int tpw_filter_port_set_hold(tpw_filter_port_h port_handle, bool enable)
     if (!port || port->direction != TPW_FILTER_PORT_INPUT)
         return TPW_STREAM_ERR_INVALID_ARG;
     if (port->filter->state != TPW_FILTER_STATE_CREATED)
-        return TPW_STREAM_ERR_NOT_CONFIGURED;
+        return TPW_STREAM_ERR_INVALID_ARG;
 
     port->hold_enabled = enable;
     return TPW_STREAM_OK;

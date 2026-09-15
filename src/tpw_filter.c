@@ -229,7 +229,7 @@ int tpw_filter_set_period_hint(tpw_filter_h handle, uint32_t max_period_ns)
     if (!filter)
         return TPW_STREAM_ERR_INVALID_ARG;
     if (filter->state != TPW_FILTER_STATE_CREATED)
-        return TPW_STREAM_ERR_NOT_CONFIGURED;
+        return TPW_STREAM_ERR_INVALID_ARG;
 
     filter->period_hint_ns = max_period_ns;
     return TPW_STREAM_OK;
