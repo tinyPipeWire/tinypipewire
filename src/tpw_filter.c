@@ -167,6 +167,10 @@ tpw_filter_h tpw_filter_create(const char* name, tpw_filter_process_cb callback,
      * node.always-process keeps .process() firing regardless so the app can
      * drive I/O via push_port_data. */
     struct pw_properties* props = pw_properties_new(PW_KEY_NODE_ALWAYS_PROCESS, "true", NULL);
+    /* PipeWire names an unnamed node after the process, so the name has to be
+     * set here for other nodes and tpw_filter_port_link() to find it. */
+    if (props && filter->name)
+        pw_properties_set(props, PW_KEY_NODE_NAME, filter->name);
     filter->pw_filter =
         pw_filter_new(filter->conn.core, filter->name ? filter->name : "tpw-filter", props);
     if (!filter->pw_filter) {
