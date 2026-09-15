@@ -285,6 +285,25 @@ handles:
   themselves must come from somewhere — the daemon's own configuration, for
   instance. This controls wiring, not what devices exist.
 
+## Calling the library from a callback
+
+Each callback runs on a thread the library owns, and some calls cannot be made
+from there without deadlocking or tearing down the thread they run on. Those
+calls are refused with `TPW_STREAM_ERR_INVALID_ARG` and the reason is logged;
+`tpw_stream_destroy()` has no return value, so it only logs and leaves the
+stream as it was.
+
+| Callback | Runs on | Refused inside it |
+| --- | --- | --- |
+| data, playback | PipeWire's real-time data thread | start, stop, destroy, link, unlink, the target queries, the format setters |
+| error | the stream's loop thread | destroy, link, the target queries, the format setters, a draining stop |
+
+A stop without drain and `tpw_stream_unlink()` work in the error callback, and
+the setters that only record a value (`tpw_stream_set_target()`,
+`tpw_stream_set_role()` and the like) work anywhere. To re-route after losing
+a device, leave the error callback first: note what happened there, then link
+from your own thread.
+
 ## DMABUF capture
 
 A video capture stream can opt into receiving DMABUF file descriptors
