@@ -64,7 +64,7 @@ typedef struct {
  * @brief Delivers one buffer of captured audio samples or a video frame.
  *
  * Runs on PipeWire's real-time data thread, so it must not block. Calls that
- * take the stream's loop lock are refused here with TPW_STREAM_ERR_INVALID_ARG:
+ * take the stream's loop lock are refused here with TPW_STREAM_ERR_IN_CALLBACK:
  * start, stop, link, unlink, the target queries and the format setters.
  * tpw_stream_destroy() is refused as well and only logs, so destroy the
  * stream after the callback returns.
@@ -108,7 +108,7 @@ typedef void (*tpw_stream_playback_cb)(tpw_stream_h stream, tpw_stream_playback_
  *
  * Runs on the stream's loop thread. A stop without drain and
  * tpw_stream_unlink() work here, but calls that would wait on this same
- * thread are refused with TPW_STREAM_ERR_INVALID_ARG: a draining stop, link,
+ * thread are refused with TPW_STREAM_ERR_IN_CALLBACK: a draining stop, link,
  * the target queries and the format setters. tpw_stream_destroy() is refused
  * and only logs, so re-route or destroy the stream after the callback returns.
  *
@@ -213,7 +213,7 @@ typedef struct {
  * @param[out] out     Filled with up to `out_len` targets, or NULL to only count them.
  * @param[in]  out_len Capacity of `out`.
  * @param[out] found   The target count actually available, which may exceed `out_len` if it was too small; 0 on failure. A graph with no such node is TPW_STREAM_OK with 0, not an error.
- * @return TPW_STREAM_OK, TPW_STREAM_ERR_INVALID_ARG for a NULL `stream` or `found` or a call from inside a callback, or TPW_STREAM_ERR_CONNECT_FAILED when the registry cannot be reached.
+ * @return TPW_STREAM_OK, TPW_STREAM_ERR_INVALID_ARG for a NULL `stream` or `found`, TPW_STREAM_ERR_IN_CALLBACK from inside a callback, or TPW_STREAM_ERR_CONNECT_FAILED when the registry cannot be reached.
  */
 TPW_API int tpw_stream_get_target_list(tpw_stream_h stream, tpw_target_info* out, size_t out_len,
                                         size_t* found);
@@ -250,7 +250,7 @@ typedef struct {
  * @param[out] out     Filled with up to `out_len` formats, or NULL to only count them.
  * @param[in]  out_len Capacity of `out`.
  * @param[out] found   The format count actually available, which may exceed `out_len` if it was too small; 0 on failure. A device reporting no format this library can name is TPW_STREAM_OK with 0, not an error.
- * @return TPW_STREAM_OK, TPW_STREAM_ERR_INVALID_ARG for a NULL or non-video stream, a NULL `found`, no target to read, a target naming no node, or a call from inside a callback, or TPW_STREAM_ERR_CONNECT_FAILED when the query fails or times out.
+ * @return TPW_STREAM_OK, TPW_STREAM_ERR_INVALID_ARG for a NULL or non-video stream, a NULL `found`, no target to read, or a target naming no node, TPW_STREAM_ERR_IN_CALLBACK from inside a callback, or TPW_STREAM_ERR_CONNECT_FAILED when the query fails or times out.
  */
 TPW_API int tpw_stream_get_target_video_formats(tpw_stream_h stream, const char* target,
                                                  tpw_video_format_info* out, size_t out_len,
@@ -294,7 +294,7 @@ TPW_API int tpw_stream_set_autoconnect(tpw_stream_h stream, bool enable);
  *
  * @param stream The running stream to wire, with autoconnect off.
  * @param target A node name or an object.serial.
- * @return TPW_STREAM_OK, or a tpw_stream_error: NOT_CONFIGURED before start, INVALID_ARG for a bad mode/target/channel count, an already-linked stream or a call from inside a callback, CONNECT_FAILED when negotiation fails or times out.
+ * @return TPW_STREAM_OK, or a tpw_stream_error: NOT_CONFIGURED before start, INVALID_ARG for a bad mode/target/channel count or an already-linked stream, IN_CALLBACK from inside a callback, CONNECT_FAILED when negotiation fails or times out.
  */
 TPW_API int tpw_stream_link(tpw_stream_h stream, const char* target);
 
@@ -307,7 +307,7 @@ TPW_API int tpw_stream_link(tpw_stream_h stream, const char* target);
  * again.
  *
  * @param stream The stream to unlink.
- * @return TPW_STREAM_OK, or TPW_STREAM_ERR_INVALID_ARG when the stream has no links or the call comes from its data callback.
+ * @return TPW_STREAM_OK, TPW_STREAM_ERR_INVALID_ARG when the stream has no links, or TPW_STREAM_ERR_IN_CALLBACK from its data callback.
  */
 TPW_API int tpw_stream_unlink(tpw_stream_h stream);
 
@@ -357,7 +357,7 @@ typedef struct {
  * @brief Configures audio format before starting an audio stream.
  * @param stream The stream to configure; must not have started yet.
  * @param config The requested sample rate, channel count, and sample format.
- * @return TPW_STREAM_OK, TPW_STREAM_ERR_INVALID_ARG (NULL stream/config, not an audio stream, or a call from inside a callback), TPW_STREAM_ERR_INVALID_FORMAT (unrecognized format or out-of-range field), or TPW_STREAM_ERR_CONNECT_FAILED.
+ * @return TPW_STREAM_OK, TPW_STREAM_ERR_INVALID_ARG (NULL stream/config, or not an audio stream), TPW_STREAM_ERR_INVALID_FORMAT (unrecognized format or out-of-range field), TPW_STREAM_ERR_IN_CALLBACK (from inside a callback), or TPW_STREAM_ERR_CONNECT_FAILED.
  */
 TPW_API int tpw_stream_set_audio_config(tpw_stream_h stream, const tpw_audio_config* config);
 
@@ -365,7 +365,7 @@ TPW_API int tpw_stream_set_audio_config(tpw_stream_h stream, const tpw_audio_con
  * @brief Configures video format before starting a video stream.
  * @param stream The stream to configure; must not have started yet.
  * @param config The requested width, height, pixel format, and frame rate.
- * @return TPW_STREAM_OK, TPW_STREAM_ERR_INVALID_ARG (NULL stream/config, not a video-capture stream, or a call from inside a callback), TPW_STREAM_ERR_INVALID_FORMAT (unrecognized pixel format or out-of-range dimension), or TPW_STREAM_ERR_CONNECT_FAILED.
+ * @return TPW_STREAM_OK, TPW_STREAM_ERR_INVALID_ARG (NULL stream/config, or not a video-capture stream), TPW_STREAM_ERR_INVALID_FORMAT (unrecognized pixel format or out-of-range dimension), TPW_STREAM_ERR_IN_CALLBACK (from inside a callback), or TPW_STREAM_ERR_CONNECT_FAILED.
  */
 TPW_API int tpw_stream_set_video_config(tpw_stream_h stream, const tpw_video_config* config);
 
@@ -405,7 +405,7 @@ typedef struct {
  * @param stream The stream to configure; must not have started yet.
  * @param config The requested width, height, pixel format, and frame rate.
  * @param opts   DMABUF options, or NULL for AUTO.
- * @return TPW_STREAM_OK, TPW_STREAM_ERR_INVALID_ARG (NULL stream/config, not a video-capture stream, MJPG requested with DMABUF, or a call from inside a callback), TPW_STREAM_ERR_INVALID_FORMAT, or TPW_STREAM_ERR_CONNECT_FAILED.
+ * @return TPW_STREAM_OK, TPW_STREAM_ERR_INVALID_ARG (NULL stream/config, not a video-capture stream, or MJPG requested with DMABUF), TPW_STREAM_ERR_INVALID_FORMAT, TPW_STREAM_ERR_IN_CALLBACK (from inside a callback), or TPW_STREAM_ERR_CONNECT_FAILED.
  */
 TPW_API int tpw_stream_set_video_config_ex(tpw_stream_h stream, const tpw_video_config* config,
                                             const tpw_stream_dmabuf_opts* opts);
@@ -429,7 +429,7 @@ TPW_API size_t tpw_stream_get_dmabuf_planes(tpw_stream_h stream, tpw_dmabuf_plan
 /**
  * @brief Starts data delivery. Requires a format to already be set.
  * @param stream The stream to start.
- * @return TPW_STREAM_OK, TPW_STREAM_ERR_INVALID_ARG (NULL stream, or a call from its data callback), TPW_STREAM_ERR_NOT_CONFIGURED (no format set), or TPW_STREAM_ERR_CONNECT_FAILED.
+ * @return TPW_STREAM_OK, TPW_STREAM_ERR_INVALID_ARG (NULL stream), TPW_STREAM_ERR_IN_CALLBACK (from its data callback), TPW_STREAM_ERR_NOT_CONFIGURED (no format set), or TPW_STREAM_ERR_CONNECT_FAILED.
  */
 TPW_API int tpw_stream_start(tpw_stream_h stream);
 
@@ -445,7 +445,7 @@ TPW_API int tpw_stream_start(tpw_stream_h stream);
  *
  * @param stream The stream to stop.
  * @param drain  true to wait for what is already queued to finish first.
- * @return TPW_STREAM_OK, or TPW_STREAM_ERR_INVALID_ARG for a NULL `stream` or a refused call from inside a callback.
+ * @return TPW_STREAM_OK, TPW_STREAM_ERR_INVALID_ARG for a NULL `stream`, or TPW_STREAM_ERR_IN_CALLBACK for a stop refused inside a callback.
  */
 TPW_API int tpw_stream_stop(tpw_stream_h stream, bool drain);
 

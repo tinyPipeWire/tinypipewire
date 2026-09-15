@@ -289,7 +289,7 @@ handles:
 
 Each callback runs on a thread the library owns, and some calls cannot be made
 from there without deadlocking or tearing down the thread they run on. Those
-calls are refused with `TPW_STREAM_ERR_INVALID_ARG` and the reason is logged;
+calls are refused with `TPW_STREAM_ERR_IN_CALLBACK` and the reason is logged;
 `tpw_stream_destroy()` has no return value, so it only logs and leaves the
 stream as it was.
 
