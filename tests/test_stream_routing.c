@@ -154,10 +154,10 @@ static void test_link_ordering_and_mode(void)
 static void test_unlink_without_links_is_refused(void)
 {
     tpw_stream_h s = make_capture();
-    TPW_ASSERT_EQ(tpw_stream_unlink(s), TPW_STREAM_ERR_INVALID_ARG);
+    TPW_ASSERT_EQ(tpw_stream_unlink(s), TPW_STREAM_ERR_NOT_CONFIGURED);
 
     TPW_ASSERT_EQ(tpw_stream_set_autoconnect(s, false), TPW_STREAM_OK);
-    TPW_ASSERT_EQ(tpw_stream_unlink(s), TPW_STREAM_ERR_INVALID_ARG);
+    TPW_ASSERT_EQ(tpw_stream_unlink(s), TPW_STREAM_ERR_NOT_CONFIGURED);
 
     tpw_stream_destroy(s);
 }
