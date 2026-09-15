@@ -141,8 +141,10 @@ int tpw_filter_get_target_video_formats(tpw_filter_h handle, const char* target,
         return TPW_STREAM_ERR_INVALID_ARG;
 
     *found = 0;
-    if (!filter || !target || tpw_filter_refuse_in_callback(filter, true, __func__))
+    if (!filter || !target)
         return TPW_STREAM_ERR_INVALID_ARG;
+    if (tpw_filter_refuse_in_callback(filter, true, __func__))
+        return TPW_STREAM_ERR_IN_CALLBACK;
     if (tpw_pw_registry_bind(&filter->registry, &filter->conn) < 0)
         return TPW_STREAM_ERR_CONNECT_FAILED;
 
@@ -256,7 +258,9 @@ int tpw_filter_port_link(tpw_filter_port_h port_handle, const char* target)
         return TPW_STREAM_ERR_INVALID_ARG;
     if (port->direction != TPW_FILTER_PORT_INPUT)
         return TPW_STREAM_ERR_INVALID_ARG;
-    if (port->link_proxy || tpw_filter_refuse_in_callback(port->filter, true, __func__))
+    if (tpw_filter_refuse_in_callback(port->filter, true, __func__))
+        return TPW_STREAM_ERR_IN_CALLBACK;
+    if (port->link_proxy)
         return TPW_STREAM_ERR_INVALID_ARG;
 
     struct tpw_filter* filter = port->filter;
@@ -347,7 +351,7 @@ int tpw_filter_port_unlink(tpw_filter_port_h port_handle)
     if (!port || port->direction != TPW_FILTER_PORT_INPUT)
         return TPW_STREAM_ERR_INVALID_ARG;
     if (tpw_filter_refuse_in_callback(port->filter, false, __func__))
-        return TPW_STREAM_ERR_INVALID_ARG;
+        return TPW_STREAM_ERR_IN_CALLBACK;
     if (!port->link_proxy)
         return TPW_STREAM_ERR_NOT_CONFIGURED;
 
