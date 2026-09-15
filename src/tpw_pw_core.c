@@ -1,5 +1,6 @@
 /* SPDX-License-Identifier: MIT */
 
+#include <errno.h>
 #include <pthread.h>
 #include <stdlib.h>
 #include <string.h>
@@ -262,13 +263,18 @@ int tpw_pw_core_sync_locked(struct tpw_pw_core_conn* conn)
     pw_thread_loop_get_time(conn->loop, &deadline, TPW_CONNECT_TIMEOUT_NSEC);
     while (!conn->sync_done) {
         if (pw_thread_loop_timed_wait_full(conn->loop, &deadline) < 0) {
-            conn->connect_result = -1;
+            conn->connect_result = -ETIMEDOUT;
             break;
         }
     }
 
     spa_hook_remove(&conn->core_listener);
     return conn->connect_result;
+}
+
+int tpw_pw_error_from_sync(int res)
+{
+    return res == -ETIMEDOUT ? TPW_STREAM_ERR_TIMEOUT : TPW_STREAM_ERR_CONNECT_FAILED;
 }
 
 int tpw_pw_registry_bind(struct tpw_pw_registry* reg, struct tpw_pw_core_conn* conn)
@@ -295,7 +301,7 @@ int tpw_pw_registry_bind(struct tpw_pw_registry* reg, struct tpw_pw_core_conn* c
     pw_thread_loop_unlock(conn->loop);
 
     if (res < 0)
-        tpw_log_error("timed out waiting for the pipewire registry to enumerate");
+        tpw_log_error("the pipewire registry did not finish enumerating (result=%d)", res);
 
     return res;
 }

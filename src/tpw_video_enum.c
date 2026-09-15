@@ -220,8 +220,8 @@ int tpw_pw_enum_video_formats(struct tpw_pw_core_conn* conn, struct tpw_pw_regis
     pw_thread_loop_unlock(conn->loop);
 
     if (res < 0) {
-        tpw_log_error("timed out reading the formats of node %u", node_id);
-        return TPW_STREAM_ERR_CONNECT_FAILED;
+        tpw_log_error("reading the formats of node %u failed (result=%d)", node_id, res);
+        return tpw_pw_error_from_sync(res);
     }
 
     *found = ctx.found;

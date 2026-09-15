@@ -162,6 +162,22 @@ static void test_unlink_without_links_is_refused(void)
     tpw_stream_destroy(s);
 }
 
+/* A link waits for the stream's ports and then its target. Without a session manager the ports
+ * never come and the wait times out, and with one the absent target is not found. */
+static void test_link_reports_timeout_or_missing_target(void)
+{
+    tpw_stream_h s = make_capture();
+    tpw_audio_config cfg = { .sample_rate = 48000, .channels = 2 };
+    TPW_ASSERT_EQ(tpw_stream_set_autoconnect(s, false), TPW_STREAM_OK);
+    TPW_ASSERT_EQ(tpw_stream_set_audio_config(s, &cfg), TPW_STREAM_OK);
+    TPW_ASSERT_EQ(tpw_stream_start(s), TPW_STREAM_OK);
+
+    int res = tpw_stream_link(s, "tpw-test-no-such-node");
+    TPW_ASSERT(res == TPW_STREAM_ERR_TIMEOUT || res == TPW_STREAM_ERR_NOT_FOUND);
+
+    tpw_stream_destroy(s);
+}
+
 /* Opting out and never naming a device is a legitimate state: the stream runs
  * and simply carries nothing. */
 static void test_opted_out_and_unlinked_runs(void)
@@ -221,6 +237,7 @@ int main(void)
     test_link_ordering_and_mode();
     test_unlink_without_links_is_refused();
     test_opted_out_and_unlinked_runs();
+    test_link_reports_timeout_or_missing_target();
     test_release_is_safe_when_unlinked();
     test_get_target_list();
     printf("test_stream_routing: all cases passed\n");
