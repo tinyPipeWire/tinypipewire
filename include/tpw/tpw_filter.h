@@ -13,6 +13,7 @@
 #include <stdint.h>
 #include <stddef.h>
 
+#include "tpw/tpw_export.h"
 #include "tpw/tpw_stream.h"
 
 #ifdef __cplusplus
@@ -116,7 +117,7 @@ typedef struct {
  * @param user_data Passed unchanged to `callback`.
  * @return A new filter handle, or NULL if PipeWire cannot be reached.
  */
-tpw_filter_h tpw_filter_create(const char* name, tpw_filter_process_cb callback, void* user_data);
+TPW_API tpw_filter_h tpw_filter_create(const char* name, tpw_filter_process_cb callback, void* user_data);
 
 /**
  * @brief Registers (or clears, with NULL) the optional per-port
@@ -125,7 +126,7 @@ tpw_filter_h tpw_filter_create(const char* name, tpw_filter_process_cb callback,
  * @param callback The callback to invoke on port loss, or NULL to clear it.
  * @return TPW_STREAM_OK, or TPW_STREAM_ERR_INVALID_ARG for a NULL `filter`.
  */
-int tpw_filter_set_error_cb(tpw_filter_h filter, tpw_filter_error_cb callback);
+TPW_API int tpw_filter_set_error_cb(tpw_filter_h filter, tpw_filter_error_cb callback);
 
 /**
  * @brief Adds one audio port (input or output) to `filter`.
@@ -138,8 +139,8 @@ int tpw_filter_set_error_cb(tpw_filter_h filter, tpw_filter_error_cb callback);
  * @param config    The requested sample rate, channel count, and sample format.
  * @return The new port handle, or NULL on invalid arguments or an unsupported format.
  */
-tpw_filter_port_h tpw_filter_add_audio_port(tpw_filter_h filter, tpw_filter_port_direction direction,
-                                             const tpw_audio_config* config);
+TPW_API tpw_filter_port_h tpw_filter_add_audio_port(tpw_filter_h filter, tpw_filter_port_direction direction,
+                                                     const tpw_audio_config* config);
 
 /**
  * @brief Lists the video formats `target` can deliver to a port on `filter`.
@@ -158,9 +159,9 @@ tpw_filter_port_h tpw_filter_add_audio_port(tpw_filter_h filter, tpw_filter_port
  * @param[out] found   The format count actually available, which may exceed `out_len` if it was too small; 0 on failure. A device reporting no format this library can name is TPW_STREAM_OK with 0, not an error.
  * @return TPW_STREAM_OK, TPW_STREAM_ERR_INVALID_ARG for a NULL filter, target or `found`, or a target naming no node, or TPW_STREAM_ERR_CONNECT_FAILED when the query fails or times out.
  */
-int tpw_filter_get_target_video_formats(tpw_filter_h filter, const char* target,
-                                         tpw_video_format_info* out, size_t out_len,
-                                         size_t* found);
+TPW_API int tpw_filter_get_target_video_formats(tpw_filter_h filter, const char* target,
+                                                 tpw_video_format_info* out, size_t out_len,
+                                                 size_t* found);
 
 /**
  * @brief Adds one video port (input or output) to `filter`.
@@ -172,8 +173,8 @@ int tpw_filter_get_target_video_formats(tpw_filter_h filter, const char* target,
  * @param config    The requested width, height, pixel format, and frame rate.
  * @return The new port handle, or NULL on invalid arguments or an unsupported format.
  */
-tpw_filter_port_h tpw_filter_add_video_port(tpw_filter_h filter, tpw_filter_port_direction direction,
-                                             const tpw_video_config* config);
+TPW_API tpw_filter_port_h tpw_filter_add_video_port(tpw_filter_h filter, tpw_filter_port_direction direction,
+                                                     const tpw_video_config* config);
 
 /**
  * @brief Extensible per-port options.
@@ -201,9 +202,9 @@ typedef struct {
  * @param opts      Per-port options, or NULL for AUTO.
  * @return The new port handle, or NULL for DMABUF on an output port or an unsupported/invalid request.
  */
-tpw_filter_port_h tpw_filter_add_video_port_ex(tpw_filter_h filter, tpw_filter_port_direction direction,
-                                                const tpw_video_config* config,
-                                                const tpw_filter_port_opts* opts);
+TPW_API tpw_filter_port_h tpw_filter_add_video_port_ex(tpw_filter_h filter, tpw_filter_port_direction direction,
+                                                        const tpw_video_config* config,
+                                                        const tpw_filter_port_opts* opts);
 
 /**
  * @brief Fills up to `planes_len` entries of `planes` with the current
@@ -219,8 +220,8 @@ tpw_filter_port_h tpw_filter_add_video_port_ex(tpw_filter_h filter, tpw_filter_p
  * @param[in]  planes_len Capacity of `planes`.
  * @return The plane count actually available, which may exceed `planes_len` if it was too small; 0 for a non-DMABUF port or a cycle with no buffer, and `planes` is left unwritten.
  */
-size_t tpw_filter_port_get_dmabuf_planes(const tpw_filter_port_buffer* buf,
-                                          tpw_dmabuf_plane* planes, size_t planes_len);
+TPW_API size_t tpw_filter_port_get_dmabuf_planes(const tpw_filter_port_buffer* buf,
+                                                  tpw_dmabuf_plane* planes, size_t planes_len);
 
 /**
  * @brief Enables (or disables) single-buffer "hold" on an input `port`.
@@ -234,7 +235,7 @@ size_t tpw_filter_port_get_dmabuf_planes(const tpw_filter_port_buffer* buf,
  * @param enable true to re-present the last buffer on an empty cycle, false to report no buffer instead.
  * @return TPW_STREAM_OK, or a tpw_stream_error (wrong direction, or already started).
  */
-int tpw_filter_port_set_hold(tpw_filter_port_h port, bool enable);
+TPW_API int tpw_filter_port_set_hold(tpw_filter_port_h port, bool enable);
 
 /**
  * @brief Records a preferred maximum bundling period in nanoseconds,
@@ -248,7 +249,7 @@ int tpw_filter_port_set_hold(tpw_filter_port_h port, bool enable);
  * @param max_period_ns Preferred maximum bundling period in nanoseconds, or 0 to clear the hint.
  * @return TPW_STREAM_OK, or a tpw_stream_error otherwise.
  */
-int tpw_filter_set_period_hint(tpw_filter_h filter, uint32_t max_period_ns);
+TPW_API int tpw_filter_set_period_hint(tpw_filter_h filter, uint32_t max_period_ns);
 
 /**
  * @brief Links an input `port` straight to a source node, needing no
@@ -262,7 +263,7 @@ int tpw_filter_set_period_hint(tpw_filter_h filter, uint32_t max_period_ns);
  * @param target A node name, an object.serial, or "node:port"; naming only a node lets PipeWire pick a compatible port.
  * @return TPW_STREAM_OK, or a tpw_stream_error.
  */
-int tpw_filter_port_link(tpw_filter_port_h port, const char* target);
+TPW_API int tpw_filter_port_link(tpw_filter_port_h port, const char* target);
 
 /**
  * @brief Releases the link created on `port`, which is only needed to
@@ -271,7 +272,7 @@ int tpw_filter_port_link(tpw_filter_port_h port, const char* target);
  * @param port The linked port to unlink.
  * @return TPW_STREAM_OK, or a tpw_stream_error when the port has no link.
  */
-int tpw_filter_port_unlink(tpw_filter_port_h port);
+TPW_API int tpw_filter_port_unlink(tpw_filter_port_h port);
 
 /**
  * @brief Adds one signal port (input or output) to `filter` — a
@@ -286,7 +287,7 @@ int tpw_filter_port_unlink(tpw_filter_port_h port);
  * @param direction TPW_FILTER_PORT_INPUT or TPW_FILTER_PORT_OUTPUT.
  * @return The new port handle, or NULL on invalid arguments.
  */
-tpw_filter_port_h tpw_filter_add_signal_port(tpw_filter_h filter, tpw_filter_port_direction direction);
+TPW_API tpw_filter_port_h tpw_filter_add_signal_port(tpw_filter_h filter, tpw_filter_port_direction direction);
 
 /**
  * @brief Adds one event port (input or output) to `filter` — carries
@@ -300,7 +301,7 @@ tpw_filter_port_h tpw_filter_add_signal_port(tpw_filter_h filter, tpw_filter_por
  * @param direction TPW_FILTER_PORT_INPUT or TPW_FILTER_PORT_OUTPUT.
  * @return The new port handle, or NULL on invalid arguments.
  */
-tpw_filter_port_h tpw_filter_add_event_port(tpw_filter_h filter, tpw_filter_port_direction direction);
+TPW_API tpw_filter_port_h tpw_filter_add_event_port(tpw_filter_h filter, tpw_filter_port_direction direction);
 
 /**
  * @brief Returns the media kind `port` was added with (AUDIO/VIDEO/
@@ -311,7 +312,7 @@ tpw_filter_port_h tpw_filter_add_event_port(tpw_filter_h filter, tpw_filter_port
  * @param port The port to query.
  * @return The tpw_stream_type `port` was added as.
  */
-tpw_stream_type tpw_filter_port_get_type(tpw_filter_port_h port);
+TPW_API tpw_stream_type tpw_filter_port_get_type(tpw_filter_port_h port);
 
 /**
  * @brief Returns the number of events available on `port` (an input
@@ -322,7 +323,7 @@ tpw_stream_type tpw_filter_port_get_type(tpw_filter_port_h port);
  * @param port An input event port.
  * @return The event count for this cycle; 0 if none.
  */
-size_t tpw_filter_port_get_event_count(tpw_filter_port_h port);
+TPW_API size_t tpw_filter_port_get_event_count(tpw_filter_port_h port);
 
 /**
  * @brief Reads the event at `index` (0-based, cycle-delivery order) on
@@ -337,7 +338,7 @@ size_t tpw_filter_port_get_event_count(tpw_filter_port_h port);
  * @param[out] out   Filled with the event at `index`.
  * @return TPW_STREAM_OK, or a tpw_stream_error (invalid index, or wrong port kind/direction).
  */
-int tpw_filter_port_get_event(tpw_filter_port_h port, size_t index, tpw_event* out);
+TPW_API int tpw_filter_port_get_event(tpw_filter_port_h port, size_t index, tpw_event* out);
 
 /**
  * @brief Adds one event to `port`'s event queue; the library copies
@@ -359,7 +360,7 @@ int tpw_filter_port_get_event(tpw_filter_port_h port, size_t index, tpw_event* o
  * @param event The event to copy and enqueue.
  * @return TPW_STREAM_OK, or a tpw_stream_error (wrong port kind, an invalid/unrecognized PROPERTY key, or — output ports only — no room left in the current cycle's buffer).
  */
-int tpw_filter_port_push_event(tpw_filter_port_h port, const tpw_event* event);
+TPW_API int tpw_filter_port_push_event(tpw_filter_port_h port, const tpw_event* event);
 
 /**
  * @brief Stages `size` bytes from `data` for `port` (an input port) to
@@ -379,8 +380,8 @@ int tpw_filter_port_push_event(tpw_filter_port_h port, const tpw_event* event);
  * @param pts    Carried through unchanged to that cycle's tpw_filter_port_buffer.pts; pass -1 if the source has no timestamp (e.g. tpw_stream_data_cb's own `pts` when bridging a capture stream into a filter).
  * @return TPW_STREAM_OK, or a tpw_stream_error otherwise.
  */
-int tpw_filter_push_port_data(tpw_filter_h filter, tpw_filter_port_h port, const void* data, size_t size,
-                               int64_t pts);
+TPW_API int tpw_filter_push_port_data(tpw_filter_h filter, tpw_filter_port_h port, const void* data, size_t size,
+                                       int64_t pts);
 
 /**
  * @brief Starts processing. Fails if the filter has zero ports.
@@ -390,7 +391,7 @@ int tpw_filter_push_port_data(tpw_filter_h filter, tpw_filter_port_h port, const
  * @param filter The filter to start.
  * @return TPW_STREAM_OK, or a tpw_stream_error.
  */
-int tpw_filter_start(tpw_filter_h filter);
+TPW_API int tpw_filter_start(tpw_filter_h filter);
 
 /**
  * @brief Stops processing; the filter may be restarted via tpw_filter_start().
@@ -405,7 +406,7 @@ int tpw_filter_start(tpw_filter_h filter);
  * @param drain  true to wait for what is already queued to finish first.
  * @return TPW_STREAM_OK, or a tpw_stream_error.
  */
-int tpw_filter_stop(tpw_filter_h filter, bool drain);
+TPW_API int tpw_filter_stop(tpw_filter_h filter, bool drain);
 
 /**
  * @brief Releases all resources owned by `filter`, including its ports
@@ -416,7 +417,7 @@ int tpw_filter_stop(tpw_filter_h filter, bool drain);
  *
  * @param filter The filter to destroy; NULL is a no-op.
  */
-void tpw_filter_destroy(tpw_filter_h filter);
+TPW_API void tpw_filter_destroy(tpw_filter_h filter);
 
 #ifdef __cplusplus
 }

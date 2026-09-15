@@ -28,6 +28,7 @@ install_headers(
   'include/tpw/tpw_stream.h',
   'include/tpw/tpw_filter.h',
   'include/tpw/tpw_log.h',
+  'include/tpw/tpw_export.h',
   subdir: 'tpw',
 )
 

@@ -13,6 +13,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include "tpw/tpw_export.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -111,7 +113,7 @@ typedef void (*tpw_stream_error_cb)(tpw_stream_h stream, int error_code, void* u
  * @param user_data Passed unchanged to `callback`.
  * @return A new stream handle, or NULL if PipeWire cannot be reached or `type` is rejected.
  */
-tpw_stream_h tpw_stream_create(tpw_stream_type type, tpw_stream_data_cb callback, void* user_data);
+TPW_API tpw_stream_h tpw_stream_create(tpw_stream_type type, tpw_stream_data_cb callback, void* user_data);
 
 /**
  * @brief Creates an audio playback stream, emitting to an output device
@@ -127,7 +129,7 @@ tpw_stream_h tpw_stream_create(tpw_stream_type type, tpw_stream_data_cb callback
  * @param user_data Passed unchanged to `callback`.
  * @return A new playback stream handle, or NULL if PipeWire cannot be reached.
  */
-tpw_stream_h tpw_stream_create_playback(tpw_stream_playback_cb callback, void* user_data);
+TPW_API tpw_stream_h tpw_stream_create_playback(tpw_stream_playback_cb callback, void* user_data);
 
 /**
  * @brief Registers (or clears, with NULL) the optional async-error callback.
@@ -135,7 +137,7 @@ tpw_stream_h tpw_stream_create_playback(tpw_stream_playback_cb callback, void* u
  * @param callback The callback to invoke on source loss, or NULL to clear it.
  * @return TPW_STREAM_OK, or TPW_STREAM_ERR_INVALID_ARG for a NULL `stream`.
  */
-int tpw_stream_set_error_cb(tpw_stream_h stream, tpw_stream_error_cb callback);
+TPW_API int tpw_stream_set_error_cb(tpw_stream_h stream, tpw_stream_error_cb callback);
 
 /**
  * @brief Sets (or clears, with NULL) the PipeWire node this stream should
@@ -154,7 +156,7 @@ int tpw_stream_set_error_cb(tpw_stream_h stream, tpw_stream_error_cb callback);
  * @param target A node name or object.serial, or NULL to clear a previously set target.
  * @return TPW_STREAM_OK, or TPW_STREAM_ERR_INVALID_ARG for a NULL `stream`, or for a non-NULL `target` while autoconnect is off.
  */
-int tpw_stream_set_target(tpw_stream_h stream, const char* target);
+TPW_API int tpw_stream_set_target(tpw_stream_h stream, const char* target);
 
 /**
  * @brief Sets (or clears, with NULL) the media role this stream declares,
@@ -170,7 +172,7 @@ int tpw_stream_set_target(tpw_stream_h stream, const char* target);
  * @param role   A role name, or NULL to clear a previously set role.
  * @return TPW_STREAM_OK, or TPW_STREAM_ERR_INVALID_ARG for a NULL `stream`.
  */
-int tpw_stream_set_role(tpw_stream_h stream, const char* role);
+TPW_API int tpw_stream_set_role(tpw_stream_h stream, const char* role);
 
 /**
  * @brief One target tpw_stream_set_target()/tpw_stream_link() would
@@ -198,8 +200,8 @@ typedef struct {
  * @param[out] found   The target count actually available, which may exceed `out_len` if it was too small; 0 on failure. A graph with no such node is TPW_STREAM_OK with 0, not an error.
  * @return TPW_STREAM_OK, TPW_STREAM_ERR_INVALID_ARG for a NULL `stream` or `found`, or TPW_STREAM_ERR_CONNECT_FAILED when the registry cannot be reached.
  */
-int tpw_stream_get_target_list(tpw_stream_h stream, tpw_target_info* out, size_t out_len,
-                                size_t* found);
+TPW_API int tpw_stream_get_target_list(tpw_stream_h stream, tpw_target_info* out, size_t out_len,
+                                        size_t* found);
 
 /**
  * @brief One pixel format and frame size a target can deliver.
@@ -235,9 +237,9 @@ typedef struct {
  * @param[out] found   The format count actually available, which may exceed `out_len` if it was too small; 0 on failure. A device reporting no format this library can name is TPW_STREAM_OK with 0, not an error.
  * @return TPW_STREAM_OK, TPW_STREAM_ERR_INVALID_ARG for a NULL or non-video stream, a NULL `found`, no target to read, or a target naming no node, or TPW_STREAM_ERR_CONNECT_FAILED when the query fails or times out.
  */
-int tpw_stream_get_target_video_formats(tpw_stream_h stream, const char* target,
-                                         tpw_video_format_info* out, size_t out_len,
-                                         size_t* found);
+TPW_API int tpw_stream_get_target_video_formats(tpw_stream_h stream, const char* target,
+                                                 tpw_video_format_info* out, size_t out_len,
+                                                 size_t* found);
 
 /**
  * @brief Turns automatic connection off, so the application wires the
@@ -254,7 +256,7 @@ int tpw_stream_get_target_video_formats(tpw_stream_h stream, const char* target,
  * @param enable false to opt out of autoconnect (manual wiring via tpw_stream_link()); true puts the stream back under the session manager, and leaves any target already set in place.
  * @return TPW_STREAM_OK, or TPW_STREAM_ERR_INVALID_ARG for a NULL `stream`, a format already set, or `enable` false while a target is set.
  */
-int tpw_stream_set_autoconnect(tpw_stream_h stream, bool enable);
+TPW_API int tpw_stream_set_autoconnect(tpw_stream_h stream, bool enable);
 
 /**
  * @brief Connects every channel of `stream` to `target` — a node name or
@@ -279,7 +281,7 @@ int tpw_stream_set_autoconnect(tpw_stream_h stream, bool enable);
  * @param target A node name or an object.serial.
  * @return TPW_STREAM_OK, or a tpw_stream_error: NOT_CONFIGURED before start, INVALID_ARG for a bad mode/target/channel count or an already-linked stream, CONNECT_FAILED when negotiation fails or times out.
  */
-int tpw_stream_link(tpw_stream_h stream, const char* target);
+TPW_API int tpw_stream_link(tpw_stream_h stream, const char* target);
 
 /**
  * @brief Releases every link created on `stream`.
@@ -292,7 +294,7 @@ int tpw_stream_link(tpw_stream_h stream, const char* target);
  * @param stream The stream to unlink.
  * @return TPW_STREAM_OK, or TPW_STREAM_ERR_INVALID_ARG when the stream has no links.
  */
-int tpw_stream_unlink(tpw_stream_h stream);
+TPW_API int tpw_stream_unlink(tpw_stream_h stream);
 
 /**
  * @brief Audio capture configuration passed to
@@ -342,7 +344,7 @@ typedef struct {
  * @param config The requested sample rate, channel count, and sample format.
  * @return TPW_STREAM_OK, TPW_STREAM_ERR_INVALID_ARG (NULL stream/config, or not an audio stream), TPW_STREAM_ERR_INVALID_FORMAT (unrecognized format or out-of-range field), or TPW_STREAM_ERR_CONNECT_FAILED.
  */
-int tpw_stream_set_audio_config(tpw_stream_h stream, const tpw_audio_config* config);
+TPW_API int tpw_stream_set_audio_config(tpw_stream_h stream, const tpw_audio_config* config);
 
 /**
  * @brief Configures video format before starting a video stream.
@@ -350,7 +352,7 @@ int tpw_stream_set_audio_config(tpw_stream_h stream, const tpw_audio_config* con
  * @param config The requested width, height, pixel format, and frame rate.
  * @return TPW_STREAM_OK, TPW_STREAM_ERR_INVALID_ARG (NULL stream/config, or not a video-capture stream), TPW_STREAM_ERR_INVALID_FORMAT (unrecognized pixel format or out-of-range dimension), or TPW_STREAM_ERR_CONNECT_FAILED.
  */
-int tpw_stream_set_video_config(tpw_stream_h stream, const tpw_video_config* config);
+TPW_API int tpw_stream_set_video_config(tpw_stream_h stream, const tpw_video_config* config);
 
 /**
  * @brief Per-stream DMABUF options.
@@ -390,8 +392,8 @@ typedef struct {
  * @param opts   DMABUF options, or NULL for AUTO.
  * @return TPW_STREAM_OK, TPW_STREAM_ERR_INVALID_ARG (NULL stream/config, not a video-capture stream, or MJPG requested with DMABUF), TPW_STREAM_ERR_INVALID_FORMAT, or TPW_STREAM_ERR_CONNECT_FAILED.
  */
-int tpw_stream_set_video_config_ex(tpw_stream_h stream, const tpw_video_config* config,
-                                    const tpw_stream_dmabuf_opts* opts);
+TPW_API int tpw_stream_set_video_config_ex(tpw_stream_h stream, const tpw_video_config* config,
+                                            const tpw_stream_dmabuf_opts* opts);
 
 /**
  * @brief Fills up to `planes_len` entries of `planes` with the current
@@ -407,14 +409,14 @@ int tpw_stream_set_video_config_ex(tpw_stream_h stream, const tpw_video_config* 
  * @param[in]  planes_len Capacity of `planes`.
  * @return The plane count actually available, which may exceed `planes_len` if it was too small; 0 for a non-DMABUF stream or a cycle with no buffer, and `planes` is left unwritten.
  */
-size_t tpw_stream_get_dmabuf_planes(tpw_stream_h stream, tpw_dmabuf_plane* planes, size_t planes_len);
+TPW_API size_t tpw_stream_get_dmabuf_planes(tpw_stream_h stream, tpw_dmabuf_plane* planes, size_t planes_len);
 
 /**
  * @brief Starts data delivery. Requires a format to already be set.
  * @param stream The stream to start.
  * @return TPW_STREAM_OK, TPW_STREAM_ERR_INVALID_ARG (NULL stream), TPW_STREAM_ERR_NOT_CONFIGURED (no format set), or TPW_STREAM_ERR_CONNECT_FAILED.
  */
-int tpw_stream_start(tpw_stream_h stream);
+TPW_API int tpw_stream_start(tpw_stream_h stream);
 
 /**
  * @brief Stops data delivery; the stream may be started again later.
@@ -429,7 +431,7 @@ int tpw_stream_start(tpw_stream_h stream);
  * @param drain  true to wait for what is already queued to finish first.
  * @return TPW_STREAM_OK, or TPW_STREAM_ERR_INVALID_ARG for a NULL `stream`.
  */
-int tpw_stream_stop(tpw_stream_h stream, bool drain);
+TPW_API int tpw_stream_stop(tpw_stream_h stream, bool drain);
 
 /**
  * @brief Releases all resources owned by `stream`.
@@ -438,7 +440,7 @@ int tpw_stream_stop(tpw_stream_h stream, bool drain);
  *
  * @param stream The stream to destroy; NULL is a no-op.
  */
-void tpw_stream_destroy(tpw_stream_h stream);
+TPW_API void tpw_stream_destroy(tpw_stream_h stream);
 
 #ifdef __cplusplus
 }
