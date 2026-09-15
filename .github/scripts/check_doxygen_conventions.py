@@ -85,7 +85,7 @@ def tokenize(text):
 def analyze_decl(decl_text):
     """Returns (name, is_void, params) for a function/callback decl, or
     (name, None, None) for a struct/enum/opaque-handle typedef."""
-    code = strip_comments(decl_text)
+    code = re.sub(r'\bTPW_API\b', '', strip_comments(decl_text))
     if '(' not in code:
         m = re.search(r'(\w+)\s*;\s*$', code)
         return (m.group(1) if m else None), None, None

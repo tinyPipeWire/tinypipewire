@@ -22,7 +22,7 @@ done
 
 extract_signatures() {
     local include_dir="$1"
-    gcc -E -P -I "$include_dir" "$include_dir/tpw/tpw_filter.h" 2>/dev/null \
+    gcc -E -P -DTPW_API= -I "$include_dir" "$include_dir/tpw/tpw_filter.h" 2>/dev/null \
         | tr '\n' ' ' | tr -s ' ' \
         | sed 's/;/;\n/g' \
         | grep -E 'tpw_[A-Za-z0-9_]+ *\(' \
