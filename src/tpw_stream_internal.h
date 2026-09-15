@@ -90,6 +90,13 @@ struct tpw_stream {
     struct spa_hook stream_listener;
 };
 
+/* This is the stream whose data or playback callback this thread is running, or NULL. */
+extern _Thread_local const struct tpw_stream* tpw_stream_processing;
+
+/* Refuses a call from inside `stream`'s data or playback callback, and also from its loop
+ * thread when `loop_thread_too`, where the call would wait on that thread. Logs `call` on refusal. */
+bool tpw_stream_refuse_in_callback(const struct tpw_stream* stream, bool loop_thread_too, const char* call);
+
 /* (Re)connects the underlying pw_stream with the given negotiated format
  * params, destroying any previous one first. `use_dmabuf` omits
  * PW_STREAM_FLAG_MAP_BUFFERS. Must be called with stream->loop unlocked. */

@@ -131,7 +131,7 @@ int tpw_stream_get_target_list(tpw_stream_h handle, tpw_target_info* out, size_t
         return TPW_STREAM_ERR_INVALID_ARG;
 
     *found = 0;
-    if (!stream)
+    if (!stream || tpw_stream_refuse_in_callback(stream, true, __func__))
         return TPW_STREAM_ERR_INVALID_ARG;
     if (tpw_pw_registry_bind(&stream->registry, &stream->conn) < 0)
         return TPW_STREAM_ERR_CONNECT_FAILED;
@@ -168,6 +168,8 @@ int tpw_stream_get_target_video_formats(tpw_stream_h handle, const char* target,
 
     *found = 0;
     if (!stream || stream->type != TPW_STREAM_TYPE_VIDEO)
+        return TPW_STREAM_ERR_INVALID_ARG;
+    if (tpw_stream_refuse_in_callback(stream, true, __func__))
         return TPW_STREAM_ERR_INVALID_ARG;
 
     /* Fall back to the target already set, which is the pairing this call
@@ -284,6 +286,8 @@ int tpw_stream_link(tpw_stream_h handle, const char* target)
     struct tpw_stream* stream = (struct tpw_stream*)handle;
     if (!stream || !target || !*target)
         return TPW_STREAM_ERR_INVALID_ARG;
+    if (tpw_stream_refuse_in_callback(stream, true, __func__))
+        return TPW_STREAM_ERR_INVALID_ARG;
     if (stream->autoconnect)
         return TPW_STREAM_ERR_INVALID_ARG; /* two parties would own the wiring */
     if (stream->links)
@@ -365,7 +369,7 @@ int tpw_stream_link(tpw_stream_h handle, const char* target)
 int tpw_stream_unlink(tpw_stream_h handle)
 {
     struct tpw_stream* stream = (struct tpw_stream*)handle;
-    if (!stream || !stream->links)
+    if (!stream || !stream->links || tpw_stream_refuse_in_callback(stream, false, __func__))
         return TPW_STREAM_ERR_INVALID_ARG;
 
     tpw_stream_release_links(stream);

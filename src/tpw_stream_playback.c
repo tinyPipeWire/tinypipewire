@@ -94,7 +94,9 @@ void tpw_stream_on_process_playback(void* data)
             available = wanted;
     }
 
+    tpw_stream_processing = stream;
     tpw_stream_playback_fill(stream, d->data, available, tpw_stream_playback_pts(stream));
+    tpw_stream_processing = NULL;
 
     /* A full cycle always goes out: the callback's bytes first, silence for
      * whatever it left, so a short fill never starves the device. */

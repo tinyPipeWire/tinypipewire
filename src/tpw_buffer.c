@@ -50,6 +50,7 @@ void tpw_stream_on_process(void* data)
     struct spa_meta_header* h = spa_buffer_find_meta_data(buf, SPA_META_Header, sizeof(*h));
     int64_t pts = h ? h->pts : -1;
 
+    tpw_stream_processing = stream;
     if (stream->use_dmabuf) {
         if (tpw_dmabuf_buffer_present(buf))
             tpw_stream_deliver_dmabuf(stream, buf, pts);
@@ -60,6 +61,7 @@ void tpw_stream_on_process(void* data)
             stream->data_cb((tpw_stream_h)stream, &sbuf, stream->user_data);
         }
     }
+    tpw_stream_processing = NULL;
 
     pw_stream_queue_buffer(stream->pw_stream, b);
 }
