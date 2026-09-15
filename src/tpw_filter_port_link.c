@@ -220,6 +220,8 @@ void tpw_filter_link_on_info(void* data, const struct pw_link_info* info)
      * callback would be a use-after-free, so the owner does it later. */
     port->link_state_seen_active = false;
     port->link_lost = true;
+    if (!tpw_filter_claim_source_loss(filter, port))
+        return;
     tpw_log_warning("filter '%s': a linked source became unavailable",
                     filter->name ? filter->name : "tpw-filter");
     if (filter->error_cb)
@@ -240,6 +242,8 @@ static void tpw_filter_port_link_release(struct tpw_filter_port* port)
         spa_hook_remove(&port->link_listener);
         pw_proxy_destroy(port->link_proxy);
         port->link_proxy = NULL;
+        /* The application dropped this link, so the format it clears is not a lost source. */
+        port->loss_reported = true;
     }
     port->link_state_seen_active = false;
     port->link_lost = false;

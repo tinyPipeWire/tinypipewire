@@ -146,6 +146,8 @@ struct tpw_filter_port {
     bool link_state_seen_active;
     bool link_lost;                 /* the link died after being up; proxy still
                                        needs destroying by its owner */
+    bool loss_reported;             /* It is set once a lost source is reported or the application
+                                       released the link itself, and a new format clears it. */
     struct tpw_link_wait* link_wait; /* set only while a link call is blocked */
 };
 
@@ -196,6 +198,10 @@ void tpw_filter_on_process(void* data, struct spa_io_position* position);
  * NULL. Taking the thread-loop lock from inside that callback deadlocks
  * against PipeWire's own buffer setup, so the push helpers skip it. */
 extern _Thread_local const struct tpw_filter* tpw_filter_processing;
+
+/* Claims the single report of `port` losing its source while the filter runs.
+ * Returns false when it was already reported, or the application released the link itself. */
+bool tpw_filter_claim_source_loss(struct tpw_filter* filter, struct tpw_filter_port* port);
 
 /* .param_changed callback registered on the underlying pw_filter;
  * treats a port's format being cleared (param == NULL for
