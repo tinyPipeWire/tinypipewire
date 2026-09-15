@@ -153,7 +153,7 @@ int tpw_filter_get_target_video_formats(tpw_filter_h handle, const char* target,
     uint32_t node_id = tpw_resolve_target_node(filter, target, &port_name);
     if (!node_id) {
         tpw_log_warning("filter: no node named '%s' to read formats from", target);
-        return TPW_STREAM_ERR_INVALID_ARG;
+        return TPW_STREAM_ERR_NOT_FOUND;
     }
 
     return tpw_pw_enum_video_formats(&filter->conn, &filter->registry, node_id, out, out_len, found);
@@ -275,7 +275,7 @@ int tpw_filter_port_link(tpw_filter_port_h port_handle, const char* target)
     if (!target_node_id) {
         tpw_log_warning("filter '%s': no pipewire node matches target '%s'",
                         filter->name ? filter->name : "tpw-filter", target);
-        return TPW_STREAM_ERR_INVALID_ARG;
+        return TPW_STREAM_ERR_NOT_FOUND;
     }
 
     uint32_t own_port_id = tpw_resolve_own_port_id(port);

@@ -44,7 +44,8 @@ typedef enum {
     TPW_STREAM_ERR_INVALID_FORMAT     = -3, /**< An unrecognized pixel/sample format string, or an out-of-range dimension/rate. */
     TPW_STREAM_ERR_NOT_CONFIGURED     = -4, /**< Called before a required prior step, e.g. start() before a format was set, or link() before start(). */
     TPW_STREAM_ERR_SOURCE_UNAVAILABLE = -5, /**< The connected source disappeared, or could not provide the requested memory type (see tpw_stream_error_cb). */
-    TPW_STREAM_ERR_IN_CALLBACK        = -6  /**< Called from inside one of the object's own callbacks, where the call cannot run; call it again after the callback returns. */
+    TPW_STREAM_ERR_IN_CALLBACK        = -6, /**< Called from inside one of the object's own callbacks, where the call cannot run; call it again after the callback returns. */
+    TPW_STREAM_ERR_NOT_FOUND          = -7  /**< No node in the graph matches the target name or serial; it may have gone away or never existed. */
 } tpw_stream_error;
 
 /**

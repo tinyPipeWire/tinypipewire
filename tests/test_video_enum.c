@@ -101,13 +101,13 @@ static void test_stream_rejections(void)
     /* A name no node carries resolves to nothing. */
     TPW_ASSERT_EQ(
         tpw_stream_get_target_video_formats(video, "tpw-test-nonexistent-node", fmts, 4, &n),
-        TPW_STREAM_ERR_INVALID_ARG);
+        TPW_STREAM_ERR_NOT_FOUND);
 
     /* NULL target falls back to the one already set, so an unresolvable
      * one still fails rather than picking some other device. */
     TPW_ASSERT_EQ(tpw_stream_set_target(video, "tpw-test-nonexistent-node"), TPW_STREAM_OK);
     TPW_ASSERT_EQ(tpw_stream_get_target_video_formats(video, NULL, fmts, 4, &n),
-                  TPW_STREAM_ERR_INVALID_ARG);
+                  TPW_STREAM_ERR_NOT_FOUND);
 
     tpw_stream_destroy(video);
 }
@@ -133,12 +133,12 @@ static void test_filter_rejections(void)
                   TPW_STREAM_ERR_INVALID_ARG);
     TPW_ASSERT_EQ(
         tpw_filter_get_target_video_formats(filter, "tpw-test-nonexistent-node", fmts, 4, &n),
-        TPW_STREAM_ERR_INVALID_ARG);
+        TPW_STREAM_ERR_NOT_FOUND);
 
     /* "node:port" is accepted; the node half is what has to resolve. */
     TPW_ASSERT_EQ(tpw_filter_get_target_video_formats(filter, "tpw-test-nonexistent-node:capture_0",
                                                        fmts, 4, &n),
-                  TPW_STREAM_ERR_INVALID_ARG);
+                  TPW_STREAM_ERR_NOT_FOUND);
 
     tpw_filter_destroy(filter);
 }

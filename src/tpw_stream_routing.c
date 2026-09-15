@@ -185,7 +185,7 @@ int tpw_stream_get_target_video_formats(tpw_stream_h handle, const char* target,
     uint32_t node_id = tpw_stream_resolve_target(stream, name);
     if (!node_id) {
         tpw_log_warning("stream: no node named '%s' to read formats from", name);
-        return TPW_STREAM_ERR_INVALID_ARG;
+        return TPW_STREAM_ERR_NOT_FOUND;
     }
 
     return tpw_pw_enum_video_formats(&stream->conn, &stream->registry, node_id, out, out_len, found);
@@ -312,7 +312,7 @@ int tpw_stream_link(tpw_stream_h handle, const char* target)
     uint32_t target_node = tpw_stream_resolve_target(stream, target);
     if (!target_node) {
         tpw_log_error("stream: no node named '%s' in the graph", target);
-        return TPW_STREAM_ERR_INVALID_ARG;
+        return TPW_STREAM_ERR_NOT_FOUND;
     }
 
     /* Monitor ports sit in the opposite direction on both nodes and reuse the
