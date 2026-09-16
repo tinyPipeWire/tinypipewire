@@ -78,8 +78,8 @@ static void print_targets(const char* label, tpw_stream_h stream, bool with_form
 
 int main(void)
 {
-    print_targets("Audio/Source", tpw_stream_create(TPW_STREAM_TYPE_AUDIO, on_data, NULL), false);
-    print_targets("Video/Source", tpw_stream_create(TPW_STREAM_TYPE_VIDEO, on_data, NULL), true);
+    print_targets("Audio/Source", tpw_stream_create(TPW_DATA_AUDIO, on_data, NULL), false);
+    print_targets("Video/Source", tpw_stream_create(TPW_DATA_VIDEO, on_data, NULL), true);
     print_targets("Audio/Sink", tpw_stream_create_playback(on_fill, NULL), false);
     return 0;
 }

@@ -52,7 +52,7 @@ static void tpw_stream_on_node_removed(void* data, uint32_t id)
 /* How many ports this stream should have once the server has published them. */
 static size_t tpw_stream_expected_ports(const struct tpw_stream* stream)
 {
-    return stream->type == TPW_STREAM_TYPE_AUDIO && stream->format.audio.channels > 0
+    return stream->type == TPW_DATA_AUDIO && stream->format.audio.channels > 0
                ? (size_t)stream->format.audio.channels
                : 1;
 }
@@ -120,7 +120,7 @@ static const char* tpw_stream_target_media_class(const struct tpw_stream* stream
 {
     if (stream->direction == TPW_STREAM_DIRECTION_PLAYBACK)
         return "Audio/Sink";
-    return stream->type == TPW_STREAM_TYPE_VIDEO ? "Video/Source" : "Audio/Source";
+    return stream->type == TPW_DATA_VIDEO ? "Video/Source" : "Audio/Source";
 }
 
 int tpw_stream_get_target_list(tpw_stream_h handle, tpw_target_info* out, size_t out_len,
@@ -170,7 +170,7 @@ int tpw_stream_get_target_video_formats(tpw_stream_h handle, const char* target,
         return TPW_ERR_INVALID_ARG;
 
     *found = 0;
-    if (!stream || stream->type != TPW_STREAM_TYPE_VIDEO)
+    if (!stream || stream->type != TPW_DATA_VIDEO)
         return TPW_ERR_INVALID_ARG;
     if (tpw_stream_refuse_in_callback(stream, true, __func__))
         return TPW_ERR_IN_CALLBACK;

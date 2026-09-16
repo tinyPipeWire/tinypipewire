@@ -86,7 +86,7 @@ int main(void)
     tpw_filter_port_h dmabuf_in =
         tpw_filter_add_video_port_ex(filter, TPW_FILTER_PORT_INPUT, &cfg, &dmabuf_opts);
     TPW_ASSERT(dmabuf_in != NULL);
-    TPW_ASSERT_EQ(tpw_filter_port_get_type(dmabuf_in), TPW_STREAM_TYPE_VIDEO);
+    TPW_ASSERT_EQ(tpw_filter_port_get_type(dmabuf_in), TPW_DATA_VIDEO);
 
     /* DMABUF is import-only: refused on an OUTPUT port. */
     TPW_ASSERT(tpw_filter_add_video_port_ex(filter, TPW_FILTER_PORT_OUTPUT, &cfg, &dmabuf_opts) == NULL);

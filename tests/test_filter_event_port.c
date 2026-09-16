@@ -85,7 +85,7 @@ int main(void)
 {
     /* --- Whitebox round-trip: encode a control sequence from staged
      * events, then decode it back, and confirm every field survives. --- */
-    struct tpw_filter_port scratch_out = { .media_type = TPW_STREAM_TYPE_EVENT, .direction = TPW_FILTER_PORT_OUTPUT };
+    struct tpw_filter_port scratch_out = { .media_type = TPW_DATA_EVENT, .direction = TPW_FILTER_PORT_OUTPUT };
 
     uint8_t midi_bytes[3] = { 0x90, 0x40, 0x7f };
     stage_pending(&scratch_out, TPW_EVENT_MIDI, NULL, midi_bytes, sizeof(midi_bytes), 10);
@@ -102,7 +102,7 @@ int main(void)
     TPW_ASSERT_EQ(scratch_out.n_pending_events, (size_t)0);
     free(scratch_out.pending_events);
 
-    struct tpw_filter_port scratch_in = { .media_type = TPW_STREAM_TYPE_EVENT, .direction = TPW_FILTER_PORT_INPUT };
+    struct tpw_filter_port scratch_in = { .media_type = TPW_DATA_EVENT, .direction = TPW_FILTER_PORT_INPUT };
     tpw_filter_event_decode(&scratch_in, encode_buf, encoded);
     TPW_ASSERT_EQ(scratch_in.n_incoming_events, (size_t)3);
 
@@ -127,7 +127,7 @@ int main(void)
     free(scratch_in.incoming_events);
 
     /* --- Zero-event decode is not an error. --- */
-    struct tpw_filter_port scratch_empty = { .media_type = TPW_STREAM_TYPE_EVENT, .direction = TPW_FILTER_PORT_INPUT };
+    struct tpw_filter_port scratch_empty = { .media_type = TPW_DATA_EVENT, .direction = TPW_FILTER_PORT_INPUT };
     tpw_filter_event_decode(&scratch_empty, NULL, 0);
     TPW_ASSERT_EQ(scratch_empty.n_incoming_events, (size_t)0);
 

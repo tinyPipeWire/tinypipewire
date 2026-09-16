@@ -69,8 +69,8 @@ int main(void)
         return 1;
     }
 
-    printf("in port kind=%d, out port kind=%d (TPW_STREAM_TYPE_EVENT=%d)\n", tpw_filter_port_get_type(in),
-           tpw_filter_port_get_type(out), TPW_STREAM_TYPE_EVENT);
+    printf("in port kind=%d, out port kind=%d (TPW_DATA_EVENT=%d)\n", tpw_filter_port_get_type(in),
+           tpw_filter_port_get_type(out), TPW_DATA_EVENT);
 
     if (tpw_filter_start(filter) != TPW_OK) {
         fprintf(stderr, "failed to start filter\n");

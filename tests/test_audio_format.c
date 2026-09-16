@@ -12,7 +12,7 @@ static void noop_data_cb(tpw_stream_h stream, const tpw_stream_buffer* buf, void
 
 int main(void)
 {
-    tpw_stream_h stream = tpw_stream_create(TPW_STREAM_TYPE_AUDIO, noop_data_cb, NULL);
+    tpw_stream_h stream = tpw_stream_create(TPW_DATA_AUDIO, noop_data_cb, NULL);
     TPW_ASSERT(stream != NULL);
 
     /* A NULL config is rejected. */

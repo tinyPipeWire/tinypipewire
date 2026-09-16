@@ -73,7 +73,7 @@ void tpw_filter_on_process(void* data, struct spa_io_position* position)
         dequeued[i] = NULL;
         port->current_dmabuf_buf = NULL;
 
-        if (port->media_type == TPW_STREAM_TYPE_EVENT) {
+        if (port->media_type == TPW_DATA_EVENT) {
             if (port->direction == TPW_FILTER_PORT_INPUT) {
                 if (staged && port->n_pending_events > 0)
                     tpw_filter_event_take_pending(port);
@@ -193,7 +193,7 @@ void tpw_filter_on_process(void* data, struct spa_io_position* position)
     for (size_t i = 0; i < filter->n_ports; i++) {
         struct tpw_filter_port* port = filter->ports[i];
 
-        if (port->media_type == TPW_STREAM_TYPE_EVENT) {
+        if (port->media_type == TPW_DATA_EVENT) {
             if (port->direction == TPW_FILTER_PORT_INPUT) {
                 tpw_filter_event_clear_delivering(port);
             } else if (dequeued[i]) {

@@ -60,7 +60,7 @@ int main(int argc, char** argv)
 
     signal(SIGINT, on_signal);
 
-    tpw_stream_h s = tpw_stream_create(TPW_STREAM_TYPE_AUDIO, on_data, NULL);
+    tpw_stream_h s = tpw_stream_create(TPW_DATA_AUDIO, on_data, NULL);
     if (!s) {
         fprintf(stderr, "failed to create stream (is PipeWire running?)\n");
         return 1;

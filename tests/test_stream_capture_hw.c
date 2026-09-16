@@ -54,7 +54,7 @@ static void on_error(tpw_stream_h stream, int error_code, void* user_data)
 static void run_video_capture(const char* camera)
 {
     struct counters c = { 0 };
-    tpw_stream_h s = tpw_stream_create(TPW_STREAM_TYPE_VIDEO, on_data, &c);
+    tpw_stream_h s = tpw_stream_create(TPW_DATA_VIDEO, on_data, &c);
     TPW_ASSERT(s != NULL);
     TPW_ASSERT_EQ(tpw_stream_set_error_cb(s, on_error), TPW_OK);
     TPW_ASSERT_EQ(tpw_stream_set_autoconnect(s, false), TPW_OK);
@@ -87,7 +87,7 @@ static void run_video_capture(const char* camera)
 static void run_audio_capture(const char* mic)
 {
     struct counters c = { 0 };
-    tpw_stream_h s = tpw_stream_create(TPW_STREAM_TYPE_AUDIO, on_data, &c);
+    tpw_stream_h s = tpw_stream_create(TPW_DATA_AUDIO, on_data, &c);
     TPW_ASSERT(s != NULL);
     TPW_ASSERT_EQ(tpw_stream_set_error_cb(s, on_error), TPW_OK);
     TPW_ASSERT_EQ(tpw_stream_set_autoconnect(s, false), TPW_OK);
@@ -147,7 +147,7 @@ static void on_mjpg_error(tpw_stream_h stream, int error_code, void* user_data)
 static void run_mjpg_capture_if_supported(const char* camera)
 {
     struct mjpg_counters c = { 0 };
-    tpw_stream_h s = tpw_stream_create(TPW_STREAM_TYPE_VIDEO, on_mjpg_data, &c);
+    tpw_stream_h s = tpw_stream_create(TPW_DATA_VIDEO, on_mjpg_data, &c);
     TPW_ASSERT(s != NULL);
     TPW_ASSERT_EQ(tpw_stream_set_error_cb(s, on_mjpg_error), TPW_OK);
     TPW_ASSERT_EQ(tpw_stream_set_autoconnect(s, false), TPW_OK);

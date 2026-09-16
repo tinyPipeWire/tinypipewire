@@ -23,18 +23,19 @@ extern "C" {
 typedef struct tpw_stream* tpw_stream_h;
 
 /**
- * @brief Classifies a stream, or a tpw_filter_* port, by the kind of media
+ * @brief Classifies a stream, or a tpw_filter_* port, by the kind of data
  *        it carries.
  *
- * SIGNAL and EVENT are filter-port-only: tpw_stream_create() only accepts
- * AUDIO/VIDEO and rejects the other two.
+ * Audio and video are media; a signal and an event are not, which is why
+ * this is a data type. SIGNAL and EVENT are filter-port-only:
+ * tpw_stream_create() only accepts AUDIO/VIDEO and rejects the other two.
  */
 typedef enum {
-    TPW_STREAM_TYPE_AUDIO  = 0, /**< Raw audio samples. */
-    TPW_STREAM_TYPE_VIDEO  = 1, /**< Raw video frames. */
-    TPW_STREAM_TYPE_SIGNAL = 2, /**< Filter ports only, see tpw_filter.h. */
-    TPW_STREAM_TYPE_EVENT  = 3  /**< Filter ports only, see tpw_filter.h. */
-} tpw_stream_type;
+    TPW_DATA_AUDIO  = 0, /**< Raw audio samples. */
+    TPW_DATA_VIDEO  = 1, /**< Raw video frames. */
+    TPW_DATA_SIGNAL = 2, /**< One 32-bit float per frame, e.g. a sensor reading; filter ports only, see tpw_filter.h. */
+    TPW_DATA_EVENT  = 3  /**< Discrete timestamped items such as MIDI or a property; filter ports only, see tpw_filter.h. */
+} tpw_data_type;
 
 /** @brief Library error codes. Negative values only; 0 is success. */
 typedef enum {
@@ -126,12 +127,12 @@ typedef void (*tpw_stream_error_cb)(tpw_stream_h stream, int error_code, void* u
  *
  * Owns and manages its own PipeWire thread-loop/context/core internally.
  *
- * @param type      TPW_STREAM_TYPE_AUDIO or TPW_STREAM_TYPE_VIDEO; SIGNAL/EVENT are rejected.
+ * @param type      TPW_DATA_AUDIO or TPW_DATA_VIDEO; SIGNAL/EVENT are rejected.
  * @param callback  Invoked with each delivered buffer once the stream is started.
  * @param user_data Passed unchanged to `callback`.
  * @return A new stream handle, or NULL if PipeWire cannot be reached or `type` is rejected.
  */
-TPW_API tpw_stream_h tpw_stream_create(tpw_stream_type type, tpw_stream_data_cb callback, void* user_data);
+TPW_API tpw_stream_h tpw_stream_create(tpw_data_type type, tpw_stream_data_cb callback, void* user_data);
 
 /**
  * @brief Creates an audio playback stream, emitting to an output device

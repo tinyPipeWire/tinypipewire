@@ -325,9 +325,9 @@ TPW_API tpw_filter_port_h tpw_filter_add_event_port(tpw_filter_h filter, tpw_fil
  * Valid for any port handle obtained from any add_*_port() call.
  *
  * @param port The port to query.
- * @return The tpw_stream_type `port` was added as.
+ * @return The tpw_data_type `port` was added as.
  */
-TPW_API tpw_stream_type tpw_filter_port_get_type(tpw_filter_port_h port);
+TPW_API tpw_data_type tpw_filter_port_get_type(tpw_filter_port_h port);
 
 /**
  * @brief Returns the number of events available on `port` (an input

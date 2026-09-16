@@ -18,13 +18,13 @@ static void count_data_cb(tpw_stream_h stream, const tpw_stream_buffer* buf, voi
 int main(void)
 {
     /* start() before a format is set must be rejected. */
-    tpw_stream_h s1 = tpw_stream_create(TPW_STREAM_TYPE_AUDIO, count_data_cb, NULL);
+    tpw_stream_h s1 = tpw_stream_create(TPW_DATA_AUDIO, count_data_cb, NULL);
     TPW_ASSERT(s1 != NULL);
     TPW_ASSERT_EQ(tpw_stream_start(s1), TPW_ERR_NOT_CONFIGURED);
     tpw_stream_destroy(s1);
 
     /* Full lifecycle: create -> set format -> start -> stop -> restart -> destroy. */
-    tpw_stream_h s2 = tpw_stream_create(TPW_STREAM_TYPE_AUDIO, count_data_cb, NULL);
+    tpw_stream_h s2 = tpw_stream_create(TPW_DATA_AUDIO, count_data_cb, NULL);
     TPW_ASSERT(s2 != NULL);
     TPW_ASSERT_EQ(tpw_stream_set_audio_config(s2, &(tpw_audio_config){ .sample_rate = 48000, .channels = 2 }), TPW_OK);
 
@@ -41,7 +41,7 @@ int main(void)
     tpw_stream_destroy(s2);
 
     /* destroy() while running must stop delivery and release resources safely. */
-    tpw_stream_h s3 = tpw_stream_create(TPW_STREAM_TYPE_AUDIO, count_data_cb, NULL);
+    tpw_stream_h s3 = tpw_stream_create(TPW_DATA_AUDIO, count_data_cb, NULL);
     TPW_ASSERT(s3 != NULL);
     TPW_ASSERT_EQ(tpw_stream_set_audio_config(s3, &(tpw_audio_config){ .sample_rate = 48000, .channels = 2 }), TPW_OK);
     TPW_ASSERT_EQ(tpw_stream_start(s3), TPW_OK);
@@ -49,8 +49,8 @@ int main(void)
 
     /* One audio stream and one video stream running concurrently; stopping
      * or destroying one must not affect the other. */
-    tpw_stream_h audio = tpw_stream_create(TPW_STREAM_TYPE_AUDIO, count_data_cb, NULL);
-    tpw_stream_h video = tpw_stream_create(TPW_STREAM_TYPE_VIDEO, count_data_cb, NULL);
+    tpw_stream_h audio = tpw_stream_create(TPW_DATA_AUDIO, count_data_cb, NULL);
+    tpw_stream_h video = tpw_stream_create(TPW_DATA_VIDEO, count_data_cb, NULL);
     TPW_ASSERT(audio != NULL);
     TPW_ASSERT(video != NULL);
     TPW_ASSERT_EQ(tpw_stream_set_audio_config(audio, &(tpw_audio_config){ .sample_rate = 48000, .channels = 2 }), TPW_OK);

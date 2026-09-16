@@ -81,13 +81,13 @@ static void test_stream_rejections(void)
 
     /* An audio stream is refused, not answered with an empty list, which
      * would instead read as "this camera offers nothing". */
-    tpw_stream_h audio = tpw_stream_create(TPW_STREAM_TYPE_AUDIO, ignore_data_cb, NULL);
+    tpw_stream_h audio = tpw_stream_create(TPW_DATA_AUDIO, ignore_data_cb, NULL);
     TPW_ASSERT(audio != NULL);
     TPW_ASSERT_EQ(tpw_stream_get_target_video_formats(audio, "some-node", fmts, 4, &n),
                   TPW_ERR_INVALID_ARG);
     tpw_stream_destroy(audio);
 
-    tpw_stream_h video = tpw_stream_create(TPW_STREAM_TYPE_VIDEO, ignore_data_cb, NULL);
+    tpw_stream_h video = tpw_stream_create(TPW_DATA_VIDEO, ignore_data_cb, NULL);
     TPW_ASSERT(video != NULL);
 
     /* There is nowhere to report a count to. */

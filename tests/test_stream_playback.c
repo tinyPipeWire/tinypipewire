@@ -167,7 +167,7 @@ static void test_direction_and_video_rejection(void)
     tpw_stream_h playback = tpw_stream_create_playback(fill_cb, NULL);
     TPW_ASSERT(playback != NULL);
     TPW_ASSERT_EQ(((struct tpw_stream*)playback)->direction, TPW_STREAM_DIRECTION_PLAYBACK);
-    TPW_ASSERT_EQ(((struct tpw_stream*)playback)->type, TPW_STREAM_TYPE_AUDIO);
+    TPW_ASSERT_EQ(((struct tpw_stream*)playback)->type, TPW_DATA_AUDIO);
 
     tpw_video_config vcfg = { .width = 640, .height = 480, .pixel_format = "I420", .fps = 30 };
     TPW_ASSERT_EQ(tpw_stream_set_video_config(playback, &vcfg), TPW_ERR_INVALID_ARG);
@@ -186,12 +186,12 @@ static void capture_cb(tpw_stream_h stream, const tpw_stream_buffer* buf, void* 
 
 static void test_existing_constructor_is_still_capture(void)
 {
-    tpw_stream_h audio = tpw_stream_create(TPW_STREAM_TYPE_AUDIO, capture_cb, NULL);
+    tpw_stream_h audio = tpw_stream_create(TPW_DATA_AUDIO, capture_cb, NULL);
     TPW_ASSERT(audio != NULL);
     TPW_ASSERT_EQ(((struct tpw_stream*)audio)->direction, TPW_STREAM_DIRECTION_CAPTURE);
     tpw_stream_destroy(audio);
 
-    tpw_stream_h video = tpw_stream_create(TPW_STREAM_TYPE_VIDEO, capture_cb, NULL);
+    tpw_stream_h video = tpw_stream_create(TPW_DATA_VIDEO, capture_cb, NULL);
     TPW_ASSERT(video != NULL);
     TPW_ASSERT_EQ(((struct tpw_stream*)video)->direction, TPW_STREAM_DIRECTION_CAPTURE);
     tpw_stream_destroy(video);

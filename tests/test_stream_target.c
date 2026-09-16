@@ -20,7 +20,7 @@ int main(void)
     /* A target naming a node that doesn't exist must not break the
      * connect/start/stop lifecycle: PW_KEY_TARGET_OBJECT only steers
      * PipeWire's auto-link policy, it isn't validated at connect time. */
-    tpw_stream_h s = tpw_stream_create(TPW_STREAM_TYPE_AUDIO, ignore_data_cb, NULL);
+    tpw_stream_h s = tpw_stream_create(TPW_DATA_AUDIO, ignore_data_cb, NULL);
     TPW_ASSERT(s != NULL);
     TPW_ASSERT_EQ(tpw_stream_set_target(s, "tpw-test-nonexistent-node"), TPW_OK);
     TPW_ASSERT_EQ(tpw_stream_set_audio_config(s, &(tpw_audio_config){ .sample_rate = 48000, .channels = 2 }), TPW_OK);
