@@ -62,13 +62,13 @@ int main(void)
 {
     signal(SIGINT, on_signal);
 
-    tpw_stream_h s = tpw_stream_create(TPW_STREAM_TYPE_AUDIO, on_data, NULL);
+    tpw_stream_h s = tpw_stream_create(TPW_DATA_AUDIO, on_data, NULL);
     if (!s)
         return 1;
 
     tpw_audio_config cfg = { .sample_rate = 48000, .channels = 2 };
-    if (tpw_stream_set_audio_config(s, &cfg) != TPW_STREAM_OK ||
-        tpw_stream_start(s) != TPW_STREAM_OK) {
+    if (tpw_stream_set_audio_config(s, &cfg) != TPW_OK ||
+        tpw_stream_start(s) != TPW_OK) {
         tpw_stream_destroy(s);
         return 1;
     }
@@ -89,16 +89,17 @@ with pkg-config:
 cc capture.c $(pkg-config --cflags --libs tinypipewire) -o capture
 ```
 
-Swap `TPW_STREAM_TYPE_AUDIO` for `TPW_STREAM_TYPE_VIDEO` and
+Swap `TPW_DATA_AUDIO` for `TPW_DATA_VIDEO` and
 `tpw_stream_set_audio_config()` for `tpw_stream_set_video_config()` to
 capture from a camera instead; everything else is the same.
 
 ## API
 
-Three headers are installed, one per area:
+Four headers are installed, one per area plus the types the first two share:
 
 | Header | What it covers | Reference |
 | --- | --- | --- |
+| `tpw/tpw_types.h` | What a stream or port carries, how a call failed, and the audio, video and DMABUF descriptions | [docs/streams.md](docs/streams.md#error-codes) |
 | `tpw/tpw_stream.h` | Audio and video capture, audio playback, choosing a source, manual graph wiring, DMABUF capture | [docs/streams.md](docs/streams.md) |
 | `tpw/tpw_filter.h` | Multi-port filters, signal and event ports, DMABUF import and buffer hold, linking a port to a real device | [docs/filters.md](docs/filters.md) |
 | `tpw/tpw_log.h` | Redirecting or filtering the library's diagnostics | [docs/logging.md](docs/logging.md) |
