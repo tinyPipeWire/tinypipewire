@@ -78,6 +78,7 @@ if python3_prog.found()
   test('check_doxygen_conventions', python3_prog,
     args: [
       files('../.github/scripts/check_doxygen_conventions.py'),
+      meson.project_source_root() / 'include' / 'tpw' / 'tpw_types.h',
       meson.project_source_root() / 'include' / 'tpw' / 'tpw_stream.h',
       meson.project_source_root() / 'include' / 'tpw' / 'tpw_filter.h',
     ],
@@ -92,6 +93,7 @@ if python3_prog.found()
         files('../.github/scripts/check_exported_symbols.py'),
         nm_prog.full_path(),
         tinypipewire_lib,
+        meson.project_source_root() / 'include' / 'tpw' / 'tpw_types.h',
         meson.project_source_root() / 'include' / 'tpw' / 'tpw_stream.h',
         meson.project_source_root() / 'include' / 'tpw' / 'tpw_filter.h',
         meson.project_source_root() / 'include' / 'tpw' / 'tpw_log.h',
