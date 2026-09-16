@@ -40,22 +40,22 @@ static bool node_role(tpw_stream_h handle, char* out, size_t out_size)
 /* A role can be set, replaced and cleared, and NULL and "" both clear it. */
 static void test_set_and_clear(void)
 {
-    TPW_ASSERT_EQ(tpw_stream_set_role(NULL, "Music"), TPW_STREAM_ERR_INVALID_ARG);
+    TPW_ASSERT_EQ(tpw_stream_set_role(NULL, "Music"), TPW_ERR_INVALID_ARG);
 
     tpw_stream_h s = tpw_stream_create(TPW_STREAM_TYPE_AUDIO, on_data, NULL);
     TPW_ASSERT(s != NULL);
     struct tpw_stream* stream = (struct tpw_stream*)s;
     TPW_ASSERT(stream->role == NULL); /* no role until told otherwise */
 
-    TPW_ASSERT_EQ(tpw_stream_set_role(s, "Music"), TPW_STREAM_OK);
+    TPW_ASSERT_EQ(tpw_stream_set_role(s, "Music"), TPW_OK);
     TPW_ASSERT_EQ(strcmp(stream->role, "Music"), 0);
-    TPW_ASSERT_EQ(tpw_stream_set_role(s, "Communication"), TPW_STREAM_OK);
+    TPW_ASSERT_EQ(tpw_stream_set_role(s, "Communication"), TPW_OK);
     TPW_ASSERT_EQ(strcmp(stream->role, "Communication"), 0);
 
-    TPW_ASSERT_EQ(tpw_stream_set_role(s, NULL), TPW_STREAM_OK);
+    TPW_ASSERT_EQ(tpw_stream_set_role(s, NULL), TPW_OK);
     TPW_ASSERT(stream->role == NULL);
-    TPW_ASSERT_EQ(tpw_stream_set_role(s, "Music"), TPW_STREAM_OK);
-    TPW_ASSERT_EQ(tpw_stream_set_role(s, ""), TPW_STREAM_OK);
+    TPW_ASSERT_EQ(tpw_stream_set_role(s, "Music"), TPW_OK);
+    TPW_ASSERT_EQ(tpw_stream_set_role(s, ""), TPW_OK);
     TPW_ASSERT(stream->role == NULL);
 
     tpw_stream_destroy(s);
@@ -67,14 +67,14 @@ static void test_accepted_with_autoconnect_off(void)
 {
     tpw_stream_h s = tpw_stream_create(TPW_STREAM_TYPE_AUDIO, on_data, NULL);
     TPW_ASSERT(s != NULL);
-    TPW_ASSERT_EQ(tpw_stream_set_autoconnect(s, false), TPW_STREAM_OK);
-    TPW_ASSERT_EQ(tpw_stream_set_role(s, "Music"), TPW_STREAM_OK);
+    TPW_ASSERT_EQ(tpw_stream_set_autoconnect(s, false), TPW_OK);
+    TPW_ASSERT_EQ(tpw_stream_set_role(s, "Music"), TPW_OK);
     tpw_stream_destroy(s);
 
     s = tpw_stream_create(TPW_STREAM_TYPE_AUDIO, on_data, NULL);
     TPW_ASSERT(s != NULL);
-    TPW_ASSERT_EQ(tpw_stream_set_role(s, "Music"), TPW_STREAM_OK);
-    TPW_ASSERT_EQ(tpw_stream_set_autoconnect(s, false), TPW_STREAM_OK);
+    TPW_ASSERT_EQ(tpw_stream_set_role(s, "Music"), TPW_OK);
+    TPW_ASSERT_EQ(tpw_stream_set_autoconnect(s, false), TPW_OK);
     tpw_stream_destroy(s);
 }
 
@@ -86,22 +86,22 @@ static void test_role_reaches_the_node(void)
 
     tpw_stream_h s = tpw_stream_create(TPW_STREAM_TYPE_AUDIO, on_data, NULL);
     TPW_ASSERT(s != NULL);
-    TPW_ASSERT_EQ(tpw_stream_set_audio_config(s, &cfg), TPW_STREAM_OK);
+    TPW_ASSERT_EQ(tpw_stream_set_audio_config(s, &cfg), TPW_OK);
     TPW_ASSERT(!node_role(s, role, sizeof(role)));
     tpw_stream_destroy(s);
 
     s = tpw_stream_create(TPW_STREAM_TYPE_AUDIO, on_data, NULL);
     TPW_ASSERT(s != NULL);
-    TPW_ASSERT_EQ(tpw_stream_set_role(s, "Communication"), TPW_STREAM_OK);
-    TPW_ASSERT_EQ(tpw_stream_set_audio_config(s, &cfg), TPW_STREAM_OK);
+    TPW_ASSERT_EQ(tpw_stream_set_role(s, "Communication"), TPW_OK);
+    TPW_ASSERT_EQ(tpw_stream_set_audio_config(s, &cfg), TPW_OK);
     TPW_ASSERT(node_role(s, role, sizeof(role)));
     TPW_ASSERT_EQ(strcmp(role, "Communication"), 0);
     tpw_stream_destroy(s);
 
     tpw_stream_h p = tpw_stream_create_playback(on_fill, NULL);
     TPW_ASSERT(p != NULL);
-    TPW_ASSERT_EQ(tpw_stream_set_role(p, "Music"), TPW_STREAM_OK);
-    TPW_ASSERT_EQ(tpw_stream_set_audio_config(p, &cfg), TPW_STREAM_OK);
+    TPW_ASSERT_EQ(tpw_stream_set_role(p, "Music"), TPW_OK);
+    TPW_ASSERT_EQ(tpw_stream_set_audio_config(p, &cfg), TPW_OK);
     TPW_ASSERT(node_role(p, role, sizeof(role)));
     TPW_ASSERT_EQ(strcmp(role, "Music"), 0);
     tpw_stream_destroy(p);

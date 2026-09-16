@@ -56,7 +56,7 @@ static tpw_filter_h make_source(const char* name)
     tpw_filter_h filter = tpw_filter_create(name, source_cb, NULL);
     TPW_ASSERT(filter != NULL);
     TPW_ASSERT(tpw_filter_add_signal_port(filter, TPW_FILTER_PORT_OUTPUT) != NULL);
-    TPW_ASSERT_EQ(tpw_filter_start(filter), TPW_STREAM_OK);
+    TPW_ASSERT_EQ(tpw_filter_start(filter), TPW_OK);
     return filter;
 }
 
@@ -111,17 +111,17 @@ static void make_sink(struct sink* s, const char* name)
     s->in = tpw_filter_add_signal_port(s->filter, TPW_FILTER_PORT_INPUT);
     s->spare = tpw_filter_add_signal_port(s->filter, TPW_FILTER_PORT_INPUT);
     TPW_ASSERT(s->in != NULL && s->spare != NULL);
-    TPW_ASSERT_EQ(tpw_filter_set_error_cb(s->filter, sink_error_cb), TPW_STREAM_OK);
-    TPW_ASSERT_EQ(tpw_filter_start(s->filter), TPW_STREAM_OK);
+    TPW_ASSERT_EQ(tpw_filter_set_error_cb(s->filter, sink_error_cb), TPW_OK);
+    TPW_ASSERT_EQ(tpw_filter_start(s->filter), TPW_OK);
 }
 
 /* Links by the name given to create(), retrying while the new node reaches the registry. */
 static int link_by_name(tpw_filter_port_h port, const char* name)
 {
-    int res = TPW_STREAM_ERR_INVALID_ARG;
-    for (int i = 0; i < 20 && res != TPW_STREAM_OK; i++) {
+    int res = TPW_ERR_INVALID_ARG;
+    for (int i = 0; i < 20 && res != TPW_OK; i++) {
         res = tpw_filter_port_link(port, name);
-        if (res != TPW_STREAM_OK)
+        if (res != TPW_OK)
             usleep(100000);
     }
     return res;
@@ -133,7 +133,7 @@ static void test_lost_source_reported_once(void)
     tpw_filter_h src = make_source("tpw-test-cbc-lost");
     struct sink s = { 0 };
     make_sink(&s, "tpw-test-cbc-sink-lost");
-    TPW_ASSERT_EQ(link_by_name(s.in, "tpw-test-cbc-lost"), TPW_STREAM_OK);
+    TPW_ASSERT_EQ(link_by_name(s.in, "tpw-test-cbc-lost"), TPW_OK);
     usleep(200000);
 
     tpw_filter_destroy(src);
@@ -151,13 +151,13 @@ static void test_own_teardown_reports_nothing(void)
     for (int how = 0; how < 3; how++) {
         struct sink s = { 0 };
         make_sink(&s, "tpw-test-cbc-sink-own");
-        TPW_ASSERT_EQ(link_by_name(s.in, "tpw-test-cbc-src"), TPW_STREAM_OK);
+        TPW_ASSERT_EQ(link_by_name(s.in, "tpw-test-cbc-src"), TPW_OK);
         usleep(200000);
 
         if (how == 0)
-            TPW_ASSERT_EQ(tpw_filter_port_unlink(s.in), TPW_STREAM_OK);
+            TPW_ASSERT_EQ(tpw_filter_port_unlink(s.in), TPW_OK);
         else if (how == 1)
-            TPW_ASSERT_EQ(tpw_filter_stop(s.filter, false), TPW_STREAM_OK);
+            TPW_ASSERT_EQ(tpw_filter_stop(s.filter, false), TPW_OK);
         usleep(300000);
         if (how == 2)
             tpw_filter_destroy(s.filter);
@@ -174,11 +174,11 @@ static void test_calls_refused_in_process_callback(void)
     tpw_filter_h src = make_source("tpw-test-cbc-src");
     struct sink s = { .calls_in_process = true };
     make_sink(&s, "tpw-test-cbc-sink-process");
-    TPW_ASSERT_EQ(link_by_name(s.in, "tpw-test-cbc-src"), TPW_STREAM_OK);
+    TPW_ASSERT_EQ(link_by_name(s.in, "tpw-test-cbc-src"), TPW_OK);
 
     TPW_ASSERT(wait_for(&s.calls_done, 1));
     for (int i = 0; i < N_CALLS; i++)
-        TPW_ASSERT_EQ(s.results[i], TPW_STREAM_ERR_IN_CALLBACK);
+        TPW_ASSERT_EQ(s.results[i], TPW_ERR_IN_CALLBACK);
     TPW_ASSERT(s.link_ms < 1000.0);
 
     int cycles = atomic_load(&s.cycles);
@@ -194,17 +194,17 @@ static void test_calls_refused_in_error_callback(void)
     tpw_filter_h other = make_source("tpw-test-cbc-src");
     struct sink s = { .calls_in_error = true };
     make_sink(&s, "tpw-test-cbc-sink-error");
-    TPW_ASSERT_EQ(link_by_name(s.in, "tpw-test-cbc-gone"), TPW_STREAM_OK);
+    TPW_ASSERT_EQ(link_by_name(s.in, "tpw-test-cbc-gone"), TPW_OK);
     usleep(200000);
 
     tpw_filter_destroy(src);
     TPW_ASSERT(wait_for(&s.calls_done, 1));
-    TPW_ASSERT_EQ(s.results[CALL_FORMATS], TPW_STREAM_ERR_IN_CALLBACK);
-    TPW_ASSERT_EQ(s.results[CALL_LINK], TPW_STREAM_ERR_IN_CALLBACK);
+    TPW_ASSERT_EQ(s.results[CALL_FORMATS], TPW_ERR_IN_CALLBACK);
+    TPW_ASSERT_EQ(s.results[CALL_LINK], TPW_ERR_IN_CALLBACK);
     TPW_ASSERT(s.link_ms < 1000.0); /* It is refused at once rather than after the link timeout. */
-    TPW_ASSERT_EQ(s.results[CALL_STOP], TPW_STREAM_OK);
+    TPW_ASSERT_EQ(s.results[CALL_STOP], TPW_OK);
 
-    TPW_ASSERT_EQ(tpw_filter_start(s.filter), TPW_STREAM_OK); /* The refused destroy left it usable. */
+    TPW_ASSERT_EQ(tpw_filter_start(s.filter), TPW_OK); /* The refused destroy left it usable. */
     tpw_filter_destroy(s.filter);
     tpw_filter_destroy(other);
 }

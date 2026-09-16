@@ -80,7 +80,7 @@ void tpw_filter_on_param_changed(void* data, void* port_data, uint32_t id, const
                         filter->name ? filter->name : "tpw-filter");
 
     if (filter->error_cb)
-        filter->error_cb((tpw_filter_h)filter, (tpw_filter_port_h)port, TPW_STREAM_ERR_SOURCE_UNAVAILABLE,
+        filter->error_cb((tpw_filter_h)filter, (tpw_filter_port_h)port, TPW_ERR_SOURCE_UNAVAILABLE,
                           filter->user_data);
 }
 
@@ -217,22 +217,22 @@ int tpw_filter_set_error_cb(tpw_filter_h handle, tpw_filter_error_cb callback)
 {
     struct tpw_filter* filter = (struct tpw_filter*)handle;
     if (!filter)
-        return TPW_STREAM_ERR_INVALID_ARG;
+        return TPW_ERR_INVALID_ARG;
 
     filter->error_cb = callback;
-    return TPW_STREAM_OK;
+    return TPW_OK;
 }
 
 int tpw_filter_set_period_hint(tpw_filter_h handle, uint32_t max_period_ns)
 {
     struct tpw_filter* filter = (struct tpw_filter*)handle;
     if (!filter)
-        return TPW_STREAM_ERR_INVALID_ARG;
+        return TPW_ERR_INVALID_ARG;
     if (filter->state != TPW_FILTER_STATE_CREATED)
-        return TPW_STREAM_ERR_INVALID_ARG;
+        return TPW_ERR_INVALID_ARG;
 
     filter->period_hint_ns = max_period_ns;
-    return TPW_STREAM_OK;
+    return TPW_OK;
 }
 
 /* Numerator of the node.latency "num/48000" time ratio for a period hint,
@@ -264,11 +264,11 @@ int tpw_filter_start(tpw_filter_h handle)
 {
     struct tpw_filter* filter = (struct tpw_filter*)handle;
     if (!filter)
-        return TPW_STREAM_ERR_INVALID_ARG;
+        return TPW_ERR_INVALID_ARG;
     if (tpw_filter_refuse_in_callback(filter, false, __func__))
-        return TPW_STREAM_ERR_IN_CALLBACK;
+        return TPW_ERR_IN_CALLBACK;
     if (filter->n_ports == 0)
-        return TPW_STREAM_ERR_NOT_CONFIGURED;
+        return TPW_ERR_NOT_CONFIGURED;
 
     pw_thread_loop_lock(filter->conn.loop);
     if (filter->state == TPW_FILTER_STATE_CREATED) {
@@ -281,7 +281,7 @@ int tpw_filter_start(tpw_filter_h handle)
         if (res < 0) {
             pw_thread_loop_unlock(filter->conn.loop);
             tpw_log_error("filter '%s': failed to connect (result=%d)", filter->name ? filter->name : "tpw-filter", res);
-            return TPW_STREAM_ERR_CONNECT_FAILED;
+            return TPW_ERR_CONNECT_FAILED;
         }
     } else {
         pw_filter_set_active(filter->pw_filter, true);
@@ -289,18 +289,18 @@ int tpw_filter_start(tpw_filter_h handle)
     pw_thread_loop_unlock(filter->conn.loop);
 
     filter->state = TPW_FILTER_STATE_RUNNING;
-    return TPW_STREAM_OK;
+    return TPW_OK;
 }
 
 int tpw_filter_stop(tpw_filter_h handle, bool drain)
 {
     struct tpw_filter* filter = (struct tpw_filter*)handle;
     if (!filter)
-        return TPW_STREAM_ERR_INVALID_ARG;
+        return TPW_ERR_INVALID_ARG;
     if (tpw_filter_refuse_in_callback(filter, drain, __func__))
-        return TPW_STREAM_ERR_IN_CALLBACK;
+        return TPW_ERR_IN_CALLBACK;
     if (filter->state != TPW_FILTER_STATE_RUNNING)
-        return TPW_STREAM_OK;
+        return TPW_OK;
 
     pw_thread_loop_lock(filter->conn.loop);
 
@@ -342,7 +342,7 @@ int tpw_filter_stop(tpw_filter_h handle, bool drain)
     /* Links were made against the running graph and a restart re-links
      * explicitly, so they are dropped only now that processing is paused. */
     tpw_filter_release_all_links(filter);
-    return TPW_STREAM_OK;
+    return TPW_OK;
 }
 
 void tpw_filter_destroy(tpw_filter_h handle)

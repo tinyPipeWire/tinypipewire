@@ -20,7 +20,7 @@ int main(void)
     /* Starting with zero ports is rejected. */
     tpw_filter_h empty = tpw_filter_create("tpw-test-empty", noop_process_cb, NULL);
     TPW_ASSERT(empty != NULL);
-    TPW_ASSERT_EQ(tpw_filter_start(empty), TPW_STREAM_ERR_NOT_CONFIGURED);
+    TPW_ASSERT_EQ(tpw_filter_start(empty), TPW_ERR_NOT_CONFIGURED);
     tpw_filter_destroy(empty);
 
     tpw_filter_h filter = tpw_filter_create("tpw-test-filter", noop_process_cb, NULL);
@@ -43,7 +43,7 @@ int main(void)
     tpw_audio_config audio_cfg = { .sample_rate = 48000, .channels = 2 };
     tpw_filter_port_h in_port = tpw_filter_add_audio_port(filter, TPW_FILTER_PORT_INPUT, &audio_cfg);
     TPW_ASSERT(in_port != NULL);
-    TPW_ASSERT_EQ(tpw_filter_start(filter), TPW_STREAM_OK);
+    TPW_ASSERT_EQ(tpw_filter_start(filter), TPW_OK);
 
     /* Adding a port after the filter has started is rejected. */
     TPW_ASSERT(tpw_filter_add_audio_port(filter, TPW_FILTER_PORT_OUTPUT, &audio_cfg) == NULL);
@@ -61,7 +61,7 @@ int main(void)
     tpw_video_config mjpg_cfg = { .width = 640, .height = 480, .pixel_format = "MJPG", .fps = 30 };
     TPW_ASSERT(tpw_filter_add_video_port(out_only, TPW_FILTER_PORT_OUTPUT, &mjpg_cfg) != NULL);
 
-    TPW_ASSERT_EQ(tpw_filter_start(out_only), TPW_STREAM_OK);
+    TPW_ASSERT_EQ(tpw_filter_start(out_only), TPW_OK);
     tpw_filter_destroy(out_only);
 
     return 0;

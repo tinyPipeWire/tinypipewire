@@ -81,7 +81,7 @@ int tpw_pw_registry_bind(struct tpw_pw_registry* reg, struct tpw_pw_core_conn* c
  * arrived. Caller must hold the thread loop. 0 on success, negative on error. */
 int tpw_pw_core_sync_locked(struct tpw_pw_core_conn* conn);
 
-/* Maps a failed round-trip or registry bind to a tpw_stream_error: TIMEOUT when the
+/* Maps a failed round-trip or registry bind to a tpw_error: TIMEOUT when the
  * server never answered in time, CONNECT_FAILED for any other failure. */
 int tpw_pw_error_from_sync(int res);
 
@@ -133,7 +133,7 @@ void tpw_pw_global_deinit(void);
 
 /* Starts a thread-loop, creates a context on it, and connects a core,
  * waiting (bounded) for PipeWire to confirm the connection before
- * returning. Returns 0 on success, a negative tpw_stream_error-style
+ * returning. Returns 0 on success, a negative tpw_error-style
  * code on failure (conn's fields are left safe to pass to
  * tpw_pw_core_teardown() either way). */
 int tpw_pw_core_connect(struct tpw_pw_core_conn* conn, const char* loop_name);

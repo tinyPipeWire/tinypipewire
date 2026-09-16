@@ -81,13 +81,13 @@ static void test_shared_source(const char* target, bool video)
         port[i] = video ? tpw_filter_add_video_port(filter[i], TPW_FILTER_PORT_INPUT, &cfg)
                         : tpw_filter_add_signal_port(filter[i], TPW_FILTER_PORT_INPUT);
         TPW_ASSERT(port[i] != NULL);
-        TPW_ASSERT_EQ(tpw_filter_start(filter[i]), TPW_STREAM_OK);
+        TPW_ASSERT_EQ(tpw_filter_start(filter[i]), TPW_OK);
     }
 
     for (int i = 0; i < N; i++) {
         int res = tpw_filter_port_link(port[i], target);
         printf("  shared link %d -> '%s': %d\n", i, target, res);
-        TPW_ASSERT_EQ(res, TPW_STREAM_OK);
+        TPW_ASSERT_EQ(res, TPW_OK);
     }
 
     usleep(RUN_USEC);
@@ -113,25 +113,25 @@ static void test_video_link(const char* camera, const char* mic)
     tpw_filter_port_opts opts = { .memory = TPW_PORT_MEMORY_DMABUF };
     tpw_filter_port_h video_in = tpw_filter_add_video_port_ex(filter, TPW_FILTER_PORT_INPUT, &cfg, &opts);
     TPW_ASSERT(video_in != NULL);
-    TPW_ASSERT_EQ(tpw_filter_port_set_hold(video_in, true), TPW_STREAM_OK);
+    TPW_ASSERT_EQ(tpw_filter_port_set_hold(video_in, true), TPW_OK);
 
     tpw_filter_port_h sig_in = mic ? tpw_filter_add_signal_port(filter, TPW_FILTER_PORT_INPUT) : NULL;
     TPW_ASSERT(!mic || sig_in != NULL);
-    TPW_ASSERT_EQ(tpw_filter_start(filter), TPW_STREAM_OK);
+    TPW_ASSERT_EQ(tpw_filter_start(filter), TPW_OK);
 
     if (sig_in)
-        TPW_ASSERT_EQ(tpw_filter_port_link(sig_in, mic), TPW_STREAM_OK);
+        TPW_ASSERT_EQ(tpw_filter_port_link(sig_in, mic), TPW_OK);
 
     int res = tpw_filter_port_link(video_in, camera);
     printf("  link video -> '%s': %d\n", camera, res);
-    TPW_ASSERT_EQ(res, TPW_STREAM_OK);
+    TPW_ASSERT_EQ(res, TPW_OK);
 
     /* Re-linking an already-linked port is rejected, and unlinking makes
      * the port reusable. */
-    TPW_ASSERT_EQ(tpw_filter_port_link(video_in, camera), TPW_STREAM_ERR_INVALID_ARG);
-    TPW_ASSERT_EQ(tpw_filter_port_unlink(video_in), TPW_STREAM_OK);
-    TPW_ASSERT_EQ(tpw_filter_port_unlink(video_in), TPW_STREAM_ERR_NOT_CONFIGURED);
-    TPW_ASSERT_EQ(tpw_filter_port_link(video_in, camera), TPW_STREAM_OK);
+    TPW_ASSERT_EQ(tpw_filter_port_link(video_in, camera), TPW_ERR_INVALID_ARG);
+    TPW_ASSERT_EQ(tpw_filter_port_unlink(video_in), TPW_OK);
+    TPW_ASSERT_EQ(tpw_filter_port_unlink(video_in), TPW_ERR_NOT_CONFIGURED);
+    TPW_ASSERT_EQ(tpw_filter_port_link(video_in, camera), TPW_OK);
 
     usleep(RUN_USEC);
 
@@ -153,7 +153,7 @@ static void test_video_link(const char* camera, const char* mic)
 
     tpw_filter_stop(filter, false);
     /* stop() releases links on its own. */
-    TPW_ASSERT_EQ(tpw_filter_port_unlink(video_in), TPW_STREAM_ERR_NOT_CONFIGURED);
+    TPW_ASSERT_EQ(tpw_filter_port_unlink(video_in), TPW_ERR_NOT_CONFIGURED);
     tpw_filter_destroy(filter);
 }
 
@@ -167,11 +167,11 @@ static void test_audio_link(const char* mic)
 
     tpw_filter_port_h sig_in = tpw_filter_add_signal_port(filter, TPW_FILTER_PORT_INPUT);
     TPW_ASSERT(sig_in != NULL);
-    TPW_ASSERT_EQ(tpw_filter_start(filter), TPW_STREAM_OK);
+    TPW_ASSERT_EQ(tpw_filter_start(filter), TPW_OK);
 
     int res = tpw_filter_port_link(sig_in, mic);
     printf("  link signal -> '%s': %d\n", mic, res);
-    TPW_ASSERT_EQ(res, TPW_STREAM_OK);
+    TPW_ASSERT_EQ(res, TPW_OK);
 
     usleep(RUN_USEC);
 
@@ -180,7 +180,7 @@ static void test_audio_link(const char* mic)
     TPW_ASSERT(c.cycles > 0);
 
     /* Draining waits for already-queued input to reach on_process too. */
-    TPW_ASSERT_EQ(tpw_filter_stop(filter, true), TPW_STREAM_OK);
+    TPW_ASSERT_EQ(tpw_filter_stop(filter, true), TPW_OK);
     tpw_filter_destroy(filter);
 }
 
@@ -195,13 +195,13 @@ static void test_audio_raw_is_incompatible(const char* mic)
     tpw_audio_config cfg = { .sample_rate = 48000, .channels = 2, .format = "F32" };
     tpw_filter_port_h audio_in = tpw_filter_add_audio_port(filter, TPW_FILTER_PORT_INPUT, &cfg);
     TPW_ASSERT(audio_in != NULL);
-    TPW_ASSERT_EQ(tpw_filter_start(filter), TPW_STREAM_OK);
+    TPW_ASSERT_EQ(tpw_filter_start(filter), TPW_OK);
 
     int res = tpw_filter_port_link(audio_in, mic);
     printf("  link audio/raw -> '%s': %d (expected a clean failure)\n", mic, res);
-    TPW_ASSERT(res != TPW_STREAM_OK);
+    TPW_ASSERT(res != TPW_OK);
     /* Whatever the failure, no partial link may be left behind. */
-    TPW_ASSERT_EQ(tpw_filter_port_unlink(audio_in), TPW_STREAM_ERR_NOT_CONFIGURED);
+    TPW_ASSERT_EQ(tpw_filter_port_unlink(audio_in), TPW_ERR_NOT_CONFIGURED);
 
     tpw_filter_stop(filter, false);
     tpw_filter_destroy(filter);

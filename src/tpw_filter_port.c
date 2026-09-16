@@ -86,11 +86,11 @@ int tpw_filter_push_port_data(tpw_filter_h handle, tpw_filter_port_h port_handle
     struct tpw_filter* filter = (struct tpw_filter*)handle;
     struct tpw_filter_port* port = (struct tpw_filter_port*)port_handle;
     if (!filter || !port || port->filter != filter || port->direction != TPW_FILTER_PORT_INPUT)
-        return TPW_STREAM_ERR_INVALID_ARG;
+        return TPW_ERR_INVALID_ARG;
     if (port->media_type == TPW_STREAM_TYPE_EVENT)
-        return TPW_STREAM_ERR_INVALID_ARG;
+        return TPW_ERR_INVALID_ARG;
     if (size > 0 && !data)
-        return TPW_STREAM_ERR_INVALID_ARG;
+        return TPW_ERR_INVALID_ARG;
 
     /* The cycle never holds this lock across the callback, so pushing from
      * inside the callback takes it just as safely as any other thread. */
@@ -102,7 +102,7 @@ int tpw_filter_push_port_data(tpw_filter_h handle, tpw_filter_port_h port_handle
             pthread_mutex_unlock(&filter->push_lock);
             tpw_log_error("filter '%s': failed to grow push buffer to %zu bytes",
                           filter->name ? filter->name : "tpw-filter", size);
-            return TPW_STREAM_ERR_NO_MEMORY;
+            return TPW_ERR_NO_MEMORY;
         }
         port->pushed_data = grown;
         port->pushed_capacity = size;
@@ -114,7 +114,7 @@ int tpw_filter_push_port_data(tpw_filter_h handle, tpw_filter_port_h port_handle
     port->pushed_pending = true;
 
     pthread_mutex_unlock(&filter->push_lock);
-    return TPW_STREAM_OK;
+    return TPW_OK;
 }
 
 tpw_filter_port_h tpw_filter_add_signal_port(tpw_filter_h handle, tpw_filter_port_direction direction)
@@ -246,10 +246,10 @@ int tpw_filter_port_set_hold(tpw_filter_port_h port_handle, bool enable)
 {
     struct tpw_filter_port* port = (struct tpw_filter_port*)port_handle;
     if (!port || port->direction != TPW_FILTER_PORT_INPUT)
-        return TPW_STREAM_ERR_INVALID_ARG;
+        return TPW_ERR_INVALID_ARG;
     if (port->filter->state != TPW_FILTER_STATE_CREATED)
-        return TPW_STREAM_ERR_INVALID_ARG;
+        return TPW_ERR_INVALID_ARG;
 
     port->hold_enabled = enable;
-    return TPW_STREAM_OK;
+    return TPW_OK;
 }

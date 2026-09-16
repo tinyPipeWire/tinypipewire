@@ -34,14 +34,14 @@ int main(void)
     TPW_ASSERT(in != NULL);
 
     /* Accepted before start; 0 clears it. */
-    TPW_ASSERT_EQ(tpw_filter_set_period_hint(filter, 10000000), TPW_STREAM_OK);
-    TPW_ASSERT_EQ(tpw_filter_set_period_hint(filter, 0), TPW_STREAM_OK);
-    TPW_ASSERT_EQ(tpw_filter_set_period_hint(filter, 10000000), TPW_STREAM_OK);
+    TPW_ASSERT_EQ(tpw_filter_set_period_hint(filter, 10000000), TPW_OK);
+    TPW_ASSERT_EQ(tpw_filter_set_period_hint(filter, 0), TPW_OK);
+    TPW_ASSERT_EQ(tpw_filter_set_period_hint(filter, 10000000), TPW_OK);
 
-    TPW_ASSERT_EQ(tpw_filter_start(filter), TPW_STREAM_OK);
+    TPW_ASSERT_EQ(tpw_filter_start(filter), TPW_OK);
 
     /* Rejected after start (it is a connect-time node property). */
-    TPW_ASSERT_EQ(tpw_filter_set_period_hint(filter, 5000000), TPW_STREAM_ERR_INVALID_ARG);
+    TPW_ASSERT_EQ(tpw_filter_set_period_hint(filter, 5000000), TPW_ERR_INVALID_ARG);
 
     tpw_filter_stop(filter, false);
     tpw_filter_destroy(filter);

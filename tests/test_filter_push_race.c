@@ -40,7 +40,7 @@ static void event_cb(tpw_filter_h filter, tpw_filter_port_buffer* buffers, size_
     for (size_t i = 0; i < count; i++) {
         tpw_event ev;
         uint32_t value = 0;
-        if (tpw_filter_port_get_event(in, i, &ev) == TPW_STREAM_OK && ev.size == sizeof(value))
+        if (tpw_filter_port_get_event(in, i, &ev) == TPW_OK && ev.size == sizeof(value))
             memcpy(&value, ev.data, sizeof(value));
         /* A lost event shifts every later value off its expected position. */
         if (value != atomic_load(&g_events_seen))
@@ -56,11 +56,11 @@ static void test_no_event_is_lost(void)
     TPW_ASSERT(filter != NULL);
     tpw_filter_port_h in = tpw_filter_add_event_port(filter, TPW_FILTER_PORT_INPUT);
     TPW_ASSERT(in != NULL);
-    TPW_ASSERT_EQ(tpw_filter_start(filter), TPW_STREAM_OK);
+    TPW_ASSERT_EQ(tpw_filter_start(filter), TPW_OK);
 
     for (uint32_t i = 0; i < PUSHES; i++) {
         tpw_event ev = { .offset = 0, .kind = TPW_EVENT_MIDI, .key = NULL, .data = &i, .size = sizeof(i) };
-        TPW_ASSERT_EQ(tpw_filter_port_push_event(in, &ev), TPW_STREAM_OK);
+        TPW_ASSERT_EQ(tpw_filter_port_push_event(in, &ev), TPW_OK);
         usleep(300 + (i % 7) * 300); /* The spacing lands pushes across the whole cycle. */
     }
 
@@ -116,14 +116,14 @@ static void test_delivered_data_is_stable(void)
     TPW_ASSERT(filter != NULL);
     tpw_filter_port_h in = tpw_filter_add_signal_port(filter, TPW_FILTER_PORT_INPUT);
     TPW_ASSERT(in != NULL);
-    TPW_ASSERT_EQ(tpw_filter_start(filter), TPW_STREAM_OK);
+    TPW_ASSERT_EQ(tpw_filter_start(filter), TPW_OK);
 
     uint8_t buf[16 + 255 * 8];
     for (unsigned i = 0; i < PUSHES; i++) {
         /* Sizes vary, so the push side regrows its buffer while capacity catches up. */
         uint8_t value = (uint8_t)(1 + (i * 37) % 255);
         memset(buf, value, size_for(value));
-        TPW_ASSERT_EQ(tpw_filter_push_port_data(filter, in, buf, size_for(value), i), TPW_STREAM_OK);
+        TPW_ASSERT_EQ(tpw_filter_push_port_data(filter, in, buf, size_for(value), i), TPW_OK);
         usleep(300 + (i % 7) * 300);
     }
 

@@ -188,11 +188,11 @@ int tpw_pw_enum_video_formats(struct tpw_pw_core_conn* conn, struct tpw_pw_regis
                                size_t* found)
 {
     if (!found)
-        return TPW_STREAM_ERR_INVALID_ARG;
+        return TPW_ERR_INVALID_ARG;
 
     *found = 0;
     if (!conn || !conn->core || !reg || !reg->registry || node_id == 0)
-        return TPW_STREAM_ERR_INVALID_ARG;
+        return TPW_ERR_INVALID_ARG;
 
     struct tpw_video_enum_ctx ctx = { .out = out, .out_len = out ? out_len : 0, .found = 0 };
 
@@ -203,7 +203,7 @@ int tpw_pw_enum_video_formats(struct tpw_pw_core_conn* conn, struct tpw_pw_regis
     if (!node) {
         pw_thread_loop_unlock(conn->loop);
         tpw_log_error("failed to bind node %u to read its formats", node_id);
-        return TPW_STREAM_ERR_CONNECT_FAILED;
+        return TPW_ERR_CONNECT_FAILED;
     }
 
     struct spa_hook listener;
@@ -225,5 +225,5 @@ int tpw_pw_enum_video_formats(struct tpw_pw_core_conn* conn, struct tpw_pw_regis
     }
 
     *found = ctx.found;
-    return TPW_STREAM_OK;
+    return TPW_OK;
 }

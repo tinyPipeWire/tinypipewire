@@ -48,7 +48,7 @@ static void test_single_block_order(void)
     TPW_ASSERT(g_port != NULL);
 
     float block[5] = { 1.0f, 2.0f, 3.0f, 4.0f, 5.0f };
-    TPW_ASSERT_EQ(tpw_filter_push_port_data(handle, g_port, block, sizeof(block), 0), TPW_STREAM_OK);
+    TPW_ASSERT_EQ(tpw_filter_push_port_data(handle, g_port, block, sizeof(block), 0), TPW_OK);
 
     tpw_filter_on_process((struct tpw_filter*)handle, NULL);
 
@@ -70,14 +70,14 @@ static void test_consecutive_blocks_continue_in_order(void)
     TPW_ASSERT(g_port != NULL);
 
     float first[5] = { 1.0f, 2.0f, 3.0f, 4.0f, 5.0f };
-    TPW_ASSERT_EQ(tpw_filter_push_port_data(handle, g_port, first, sizeof(first), 0), TPW_STREAM_OK);
+    TPW_ASSERT_EQ(tpw_filter_push_port_data(handle, g_port, first, sizeof(first), 0), TPW_OK);
     tpw_filter_on_process((struct tpw_filter*)handle, NULL);
     TPW_ASSERT_EQ(g_seen_count, (size_t)5);
     for (size_t i = 0; i < 5; i++)
         TPW_ASSERT_EQ(g_seen[i], (float)(i + 1));
 
     float second[5] = { 6.0f, 7.0f, 8.0f, 9.0f, 10.0f };
-    TPW_ASSERT_EQ(tpw_filter_push_port_data(handle, g_port, second, sizeof(second), 0), TPW_STREAM_OK);
+    TPW_ASSERT_EQ(tpw_filter_push_port_data(handle, g_port, second, sizeof(second), 0), TPW_OK);
     tpw_filter_on_process((struct tpw_filter*)handle, NULL);
     TPW_ASSERT_EQ(g_seen_count, (size_t)5);
     for (size_t i = 0; i < 5; i++)
@@ -98,8 +98,8 @@ static void test_overwrite_replaces_whole_block(void)
 
     float stale[5] = { 1.0f, 2.0f, 3.0f, 4.0f, 5.0f };
     float fresh[2] = { 100.0f, 200.0f };
-    TPW_ASSERT_EQ(tpw_filter_push_port_data(handle, g_port, stale, sizeof(stale), 0), TPW_STREAM_OK);
-    TPW_ASSERT_EQ(tpw_filter_push_port_data(handle, g_port, fresh, sizeof(fresh), 0), TPW_STREAM_OK);
+    TPW_ASSERT_EQ(tpw_filter_push_port_data(handle, g_port, stale, sizeof(stale), 0), TPW_OK);
+    TPW_ASSERT_EQ(tpw_filter_push_port_data(handle, g_port, fresh, sizeof(fresh), 0), TPW_OK);
 
     tpw_filter_on_process((struct tpw_filter*)handle, NULL);
 
@@ -123,19 +123,19 @@ static void test_grow_shrink_grow_reuses_buffer_cleanly(void)
     TPW_ASSERT(g_port != NULL);
 
     float big1[10] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
-    TPW_ASSERT_EQ(tpw_filter_push_port_data(handle, g_port, big1, sizeof(big1), 0), TPW_STREAM_OK);
+    TPW_ASSERT_EQ(tpw_filter_push_port_data(handle, g_port, big1, sizeof(big1), 0), TPW_OK);
     tpw_filter_on_process((struct tpw_filter*)handle, NULL);
     TPW_ASSERT_EQ(g_seen_count, (size_t)10);
 
     float small[2] = { 101.0f, 102.0f };
-    TPW_ASSERT_EQ(tpw_filter_push_port_data(handle, g_port, small, sizeof(small), 0), TPW_STREAM_OK);
+    TPW_ASSERT_EQ(tpw_filter_push_port_data(handle, g_port, small, sizeof(small), 0), TPW_OK);
     tpw_filter_on_process((struct tpw_filter*)handle, NULL);
     TPW_ASSERT_EQ(g_seen_count, (size_t)2);
     TPW_ASSERT_EQ(g_seen[0], 101.0f);
     TPW_ASSERT_EQ(g_seen[1], 102.0f);
 
     float big2[8] = { 201, 202, 203, 204, 205, 206, 207, 208 };
-    TPW_ASSERT_EQ(tpw_filter_push_port_data(handle, g_port, big2, sizeof(big2), 0), TPW_STREAM_OK);
+    TPW_ASSERT_EQ(tpw_filter_push_port_data(handle, g_port, big2, sizeof(big2), 0), TPW_OK);
     tpw_filter_on_process((struct tpw_filter*)handle, NULL);
     TPW_ASSERT_EQ(g_seen_count, (size_t)8);
     TPW_ASSERT(memcmp(g_seen, big2, sizeof(big2)) == 0);

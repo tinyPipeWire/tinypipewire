@@ -42,13 +42,13 @@ int main(void)
     tpw_stream_set_error_cb(stream, on_error);
 
     tpw_audio_config cfg = { .sample_rate = 48000, .channels = 2 };
-    if (tpw_stream_set_audio_config(stream, &cfg) != TPW_STREAM_OK) {
+    if (tpw_stream_set_audio_config(stream, &cfg) != TPW_OK) {
         fprintf(stderr, "failed to set audio format\n");
         tpw_stream_destroy(stream);
         return 1;
     }
 
-    if (tpw_stream_start(stream) != TPW_STREAM_OK) {
+    if (tpw_stream_start(stream) != TPW_OK) {
         fprintf(stderr, "failed to start audio stream\n");
         tpw_stream_destroy(stream);
         return 1;

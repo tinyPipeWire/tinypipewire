@@ -16,21 +16,21 @@ int main(void)
     TPW_ASSERT(stream != NULL);
 
     /* A NULL config is rejected. */
-    TPW_ASSERT_EQ(tpw_stream_set_audio_config(stream, NULL), TPW_STREAM_ERR_INVALID_ARG);
+    TPW_ASSERT_EQ(tpw_stream_set_audio_config(stream, NULL), TPW_ERR_INVALID_ARG);
 
     /* Invalid formats are rejected without starting the stream. */
-    TPW_ASSERT_EQ(tpw_stream_set_audio_config(stream, &(tpw_audio_config){ .sample_rate = 0, .channels = 2 }), TPW_STREAM_ERR_INVALID_FORMAT);
-    TPW_ASSERT_EQ(tpw_stream_set_audio_config(stream, &(tpw_audio_config){ .sample_rate = 48000, .channels = 0 }), TPW_STREAM_ERR_INVALID_FORMAT);
-    TPW_ASSERT_EQ(tpw_stream_set_audio_config(stream, &(tpw_audio_config){ .sample_rate = -1, .channels = 2 }), TPW_STREAM_ERR_INVALID_FORMAT);
-    TPW_ASSERT_EQ(tpw_stream_set_audio_config(stream, &(tpw_audio_config){ .sample_rate = 48000, .channels = 2, .format = "NOT_A_FORMAT" }), TPW_STREAM_ERR_INVALID_FORMAT);
-    TPW_ASSERT_EQ(tpw_stream_start(stream), TPW_STREAM_ERR_NOT_CONFIGURED);
+    TPW_ASSERT_EQ(tpw_stream_set_audio_config(stream, &(tpw_audio_config){ .sample_rate = 0, .channels = 2 }), TPW_ERR_INVALID_FORMAT);
+    TPW_ASSERT_EQ(tpw_stream_set_audio_config(stream, &(tpw_audio_config){ .sample_rate = 48000, .channels = 0 }), TPW_ERR_INVALID_FORMAT);
+    TPW_ASSERT_EQ(tpw_stream_set_audio_config(stream, &(tpw_audio_config){ .sample_rate = -1, .channels = 2 }), TPW_ERR_INVALID_FORMAT);
+    TPW_ASSERT_EQ(tpw_stream_set_audio_config(stream, &(tpw_audio_config){ .sample_rate = 48000, .channels = 2, .format = "NOT_A_FORMAT" }), TPW_ERR_INVALID_FORMAT);
+    TPW_ASSERT_EQ(tpw_stream_start(stream), TPW_ERR_NOT_CONFIGURED);
 
     /* A valid config is accepted, whether it leaves format NULL (defaults
      * to "S16") or names a supported sample format explicitly. */
-    TPW_ASSERT_EQ(tpw_stream_set_audio_config(stream, &(tpw_audio_config){ .sample_rate = 48000, .channels = 2 }), TPW_STREAM_OK);
-    TPW_ASSERT_EQ(tpw_stream_set_audio_config(stream, &(tpw_audio_config){ .sample_rate = 48000, .channels = 2, .format = "F32" }), TPW_STREAM_OK);
-    TPW_ASSERT_EQ(tpw_stream_set_audio_config(stream, &(tpw_audio_config){ .sample_rate = 48000, .channels = 2, .format = "U8" }), TPW_STREAM_OK);
-    TPW_ASSERT_EQ(tpw_stream_set_audio_config(stream, &(tpw_audio_config){ .sample_rate = 48000, .channels = 2, .format = "S24_32" }), TPW_STREAM_OK);
+    TPW_ASSERT_EQ(tpw_stream_set_audio_config(stream, &(tpw_audio_config){ .sample_rate = 48000, .channels = 2 }), TPW_OK);
+    TPW_ASSERT_EQ(tpw_stream_set_audio_config(stream, &(tpw_audio_config){ .sample_rate = 48000, .channels = 2, .format = "F32" }), TPW_OK);
+    TPW_ASSERT_EQ(tpw_stream_set_audio_config(stream, &(tpw_audio_config){ .sample_rate = 48000, .channels = 2, .format = "U8" }), TPW_OK);
+    TPW_ASSERT_EQ(tpw_stream_set_audio_config(stream, &(tpw_audio_config){ .sample_rate = 48000, .channels = 2, .format = "S24_32" }), TPW_OK);
 
     tpw_stream_destroy(stream);
     return 0;

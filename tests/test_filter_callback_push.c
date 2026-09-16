@@ -137,7 +137,7 @@ static void test_push_port_data_from_callback(void)
 
     /* Two cycles: the first pushes, the second must see what it staged. */
     tpw_filter_on_process(filter, NULL);
-    TPW_ASSERT_EQ(g_push_result, TPW_STREAM_OK);
+    TPW_ASSERT_EQ(g_push_result, TPW_OK);
     tpw_filter_on_process(filter, NULL);
 
     TPW_ASSERT_EQ(g_push_cycles, 2);
@@ -177,7 +177,7 @@ static void test_push_to_other_filter_from_callback(void)
     g_other = (struct tpw_filter*)other;
 
     tpw_filter_on_process((struct tpw_filter*)driver, NULL);
-    TPW_ASSERT_EQ(g_cross_result, TPW_STREAM_OK);
+    TPW_ASSERT_EQ(g_cross_result, TPW_OK);
 
     tpw_filter_destroy(driver);
     tpw_filter_destroy(other);
@@ -199,13 +199,13 @@ static void test_app_thread_push_still_works(void)
     TPW_ASSERT(handle != NULL);
     tpw_filter_port_h in = tpw_filter_add_signal_port(handle, TPW_FILTER_PORT_INPUT);
     TPW_ASSERT(in != NULL);
-    TPW_ASSERT_EQ(tpw_filter_start(handle), TPW_STREAM_OK);
+    TPW_ASSERT_EQ(tpw_filter_start(handle), TPW_OK);
 
     /* The marker is per-thread, so an app-thread push takes the lock as
      * before even while the filter's own thread is processing. */
     float v = 2.5f;
     TPW_ASSERT(tpw_filter_processing == NULL);
-    TPW_ASSERT_EQ(tpw_filter_push_port_data(handle, in, &v, sizeof(v), -1), TPW_STREAM_OK);
+    TPW_ASSERT_EQ(tpw_filter_push_port_data(handle, in, &v, sizeof(v), -1), TPW_OK);
 
     tpw_filter_stop(handle, false);
     tpw_filter_destroy(handle);

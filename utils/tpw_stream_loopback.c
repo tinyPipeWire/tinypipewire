@@ -333,14 +333,14 @@ int main(int argc, char** argv)
             goto cleanup;
         }
         tpw_stream_set_error_cb(audio_capture, on_audio_capture_error);
-        if (device && tpw_stream_set_target(audio_capture, device) != TPW_STREAM_OK) {
+        if (device && tpw_stream_set_target(audio_capture, device) != TPW_OK) {
             fprintf(stderr, "tpw_stream_loopback: failed to select capture device '%s'\n", device);
             status = 1;
             goto cleanup;
         }
 
         tpw_audio_config audio_cfg = { .sample_rate = sample_rate, .channels = channels, .format = audio_format };
-        if (tpw_stream_set_audio_config(audio_capture, &audio_cfg) != TPW_STREAM_OK) {
+        if (tpw_stream_set_audio_config(audio_capture, &audio_cfg) != TPW_OK) {
             fprintf(stderr, "tpw_stream_loopback: failed to set the audio capture format\n");
             status = 1;
             goto cleanup;
@@ -353,13 +353,13 @@ int main(int argc, char** argv)
             goto cleanup;
         }
         tpw_stream_set_error_cb(audio_playback, on_audio_playback_error);
-        if (tpw_stream_set_audio_config(audio_playback, &audio_cfg) != TPW_STREAM_OK) {
+        if (tpw_stream_set_audio_config(audio_playback, &audio_cfg) != TPW_OK) {
             fprintf(stderr, "tpw_stream_loopback: failed to set the audio playback format\n");
             status = 1;
             goto cleanup;
         }
 
-        if (tpw_stream_start(audio_capture) != TPW_STREAM_OK || tpw_stream_start(audio_playback) != TPW_STREAM_OK) {
+        if (tpw_stream_start(audio_capture) != TPW_OK || tpw_stream_start(audio_playback) != TPW_OK) {
             fprintf(stderr, "tpw_stream_loopback: failed to start the audio loopback\n");
             status = 1;
             goto cleanup;
@@ -393,14 +393,14 @@ int main(int argc, char** argv)
 
             int cfg_res = use_dmabuf ? tpw_stream_set_video_config_ex(video_streams[i], &video_cfg, &dmabuf_opts)
                                       : tpw_stream_set_video_config(video_streams[i], &video_cfg);
-            if (cfg_res != TPW_STREAM_OK) {
+            if (cfg_res != TPW_OK) {
                 fprintf(stderr, "tpw_stream_loopback: failed to set video format for stream %d\n", i);
                 video_started = i + 1;
                 status = 1;
                 goto cleanup;
             }
 
-            if (tpw_stream_start(video_streams[i]) != TPW_STREAM_OK) {
+            if (tpw_stream_start(video_streams[i]) != TPW_OK) {
                 fprintf(stderr, "tpw_stream_loopback: failed to start video stream %d\n", i);
                 video_started = i + 1;
                 status = 1;

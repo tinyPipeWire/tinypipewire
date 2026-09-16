@@ -30,9 +30,9 @@ static tpw_stream_h make_running_stream(void)
 {
     tpw_stream_h s = tpw_stream_create(TPW_STREAM_TYPE_AUDIO, on_data, NULL);
     TPW_ASSERT(s != NULL);
-    TPW_ASSERT_EQ(tpw_stream_set_autoconnect(s, false), TPW_STREAM_OK);
-    TPW_ASSERT_EQ(tpw_stream_set_audio_config(s, &g_cfg), TPW_STREAM_OK);
-    TPW_ASSERT_EQ(tpw_stream_start(s), TPW_STREAM_OK);
+    TPW_ASSERT_EQ(tpw_stream_set_autoconnect(s, false), TPW_OK);
+    TPW_ASSERT_EQ(tpw_stream_set_audio_config(s, &g_cfg), TPW_OK);
+    TPW_ASSERT_EQ(tpw_stream_start(s), TPW_OK);
     return s;
 }
 
@@ -43,18 +43,18 @@ static void test_calls_refused_in_data_callback(void)
     size_t found = 99;
 
     tpw_stream_processing = (struct tpw_stream*)s;
-    TPW_ASSERT_EQ(tpw_stream_start(s), TPW_STREAM_ERR_IN_CALLBACK);
-    TPW_ASSERT_EQ(tpw_stream_stop(s, false), TPW_STREAM_ERR_IN_CALLBACK);
-    TPW_ASSERT_EQ(tpw_stream_set_audio_config(s, &g_cfg), TPW_STREAM_ERR_IN_CALLBACK);
-    TPW_ASSERT_EQ(tpw_stream_get_target_list(s, NULL, 0, &found), TPW_STREAM_ERR_IN_CALLBACK);
+    TPW_ASSERT_EQ(tpw_stream_start(s), TPW_ERR_IN_CALLBACK);
+    TPW_ASSERT_EQ(tpw_stream_stop(s, false), TPW_ERR_IN_CALLBACK);
+    TPW_ASSERT_EQ(tpw_stream_set_audio_config(s, &g_cfg), TPW_ERR_IN_CALLBACK);
+    TPW_ASSERT_EQ(tpw_stream_get_target_list(s, NULL, 0, &found), TPW_ERR_IN_CALLBACK);
     double t0 = now_ms();
-    TPW_ASSERT_EQ(tpw_stream_link(s, "tpw-test-no-such-node"), TPW_STREAM_ERR_IN_CALLBACK);
+    TPW_ASSERT_EQ(tpw_stream_link(s, "tpw-test-no-such-node"), TPW_ERR_IN_CALLBACK);
     TPW_ASSERT(now_ms() - t0 < 1000.0); /* It is refused instead of waiting for the stream's ports. */
     tpw_stream_destroy(s);
     tpw_stream_processing = NULL;
 
-    TPW_ASSERT_EQ(tpw_stream_set_role(s, "Music"), TPW_STREAM_OK); /* The refused destroy left it alive. */
-    TPW_ASSERT_EQ(tpw_stream_stop(s, false), TPW_STREAM_OK);
+    TPW_ASSERT_EQ(tpw_stream_set_role(s, "Music"), TPW_OK); /* The refused destroy left it alive. */
+    TPW_ASSERT_EQ(tpw_stream_stop(s, false), TPW_OK);
     tpw_stream_destroy(s);
 }
 
@@ -110,12 +110,12 @@ static void test_calls_refused_on_loop_thread(void)
 
     TPW_ASSERT(atomic_load(&c.done));
     TPW_ASSERT_EQ(c.in_loop_thread, 1);
-    TPW_ASSERT_EQ(c.link, TPW_STREAM_ERR_IN_CALLBACK);
+    TPW_ASSERT_EQ(c.link, TPW_ERR_IN_CALLBACK);
     TPW_ASSERT(c.link_ms < 1000.0);
-    TPW_ASSERT_EQ(c.targets, TPW_STREAM_ERR_IN_CALLBACK);
-    TPW_ASSERT_EQ(c.config, TPW_STREAM_ERR_IN_CALLBACK);
-    TPW_ASSERT_EQ(c.stop_drain, TPW_STREAM_ERR_IN_CALLBACK);
-    TPW_ASSERT_EQ(c.stop, TPW_STREAM_OK); /* A stop that does not drain waits on nothing. */
+    TPW_ASSERT_EQ(c.targets, TPW_ERR_IN_CALLBACK);
+    TPW_ASSERT_EQ(c.config, TPW_ERR_IN_CALLBACK);
+    TPW_ASSERT_EQ(c.stop_drain, TPW_ERR_IN_CALLBACK);
+    TPW_ASSERT_EQ(c.stop, TPW_OK); /* A stop that does not drain waits on nothing. */
     tpw_stream_destroy(s);
 }
 

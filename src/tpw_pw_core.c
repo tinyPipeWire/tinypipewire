@@ -274,7 +274,7 @@ int tpw_pw_core_sync_locked(struct tpw_pw_core_conn* conn)
 
 int tpw_pw_error_from_sync(int res)
 {
-    return res == -ETIMEDOUT ? TPW_STREAM_ERR_TIMEOUT : TPW_STREAM_ERR_CONNECT_FAILED;
+    return res == -ETIMEDOUT ? TPW_ERR_TIMEOUT : TPW_ERR_CONNECT_FAILED;
 }
 
 int tpw_pw_registry_bind(struct tpw_pw_registry* reg, struct tpw_pw_core_conn* conn)

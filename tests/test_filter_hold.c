@@ -66,12 +66,12 @@ int main(void)
     TPW_ASSERT(g_nohold_port != NULL);
 
     /* Hold is opt-in and only valid before start. */
-    TPW_ASSERT_EQ(tpw_filter_port_set_hold(g_hold_port, true), TPW_STREAM_OK);
+    TPW_ASSERT_EQ(tpw_filter_port_set_hold(g_hold_port, true), TPW_OK);
 
-    TPW_ASSERT_EQ(tpw_filter_start(filter), TPW_STREAM_OK);
+    TPW_ASSERT_EQ(tpw_filter_start(filter), TPW_OK);
 
     /* Setting hold after start is rejected. */
-    TPW_ASSERT_EQ(tpw_filter_port_set_hold(g_hold_port, true), TPW_STREAM_ERR_INVALID_ARG);
+    TPW_ASSERT_EQ(tpw_filter_port_set_hold(g_hold_port, true), TPW_ERR_INVALID_ARG);
 
     /* Phase A: before any buffer, a hold port reports no buffer (not a
      * stale/invalid one) — same as a non-hold port. */
@@ -83,8 +83,8 @@ int main(void)
     /* Phase B: one push to each port. Exactly one fresh delivery per push;
      * the hold port then re-presents that buffer on later cycles. */
     float v1 = 0.25f;
-    TPW_ASSERT_EQ(tpw_filter_push_port_data(filter, g_hold_port, &v1, sizeof(v1), 1000), TPW_STREAM_OK);
-    TPW_ASSERT_EQ(tpw_filter_push_port_data(filter, g_nohold_port, &v1, sizeof(v1), 1000), TPW_STREAM_OK);
+    TPW_ASSERT_EQ(tpw_filter_push_port_data(filter, g_hold_port, &v1, sizeof(v1), 1000), TPW_OK);
+    TPW_ASSERT_EQ(tpw_filter_push_port_data(filter, g_nohold_port, &v1, sizeof(v1), 1000), TPW_OK);
     usleep(500000);
 
     TPW_ASSERT_EQ(g_hold_fresh, 1);
@@ -99,7 +99,7 @@ int main(void)
 
     /* Phase C: a new push advances seq and updates the held payload. */
     float v2 = 0.75f;
-    TPW_ASSERT_EQ(tpw_filter_push_port_data(filter, g_hold_port, &v2, sizeof(v2), 2000), TPW_STREAM_OK);
+    TPW_ASSERT_EQ(tpw_filter_push_port_data(filter, g_hold_port, &v2, sizeof(v2), 2000), TPW_OK);
     usleep(500000);
 
     TPW_ASSERT_EQ(g_hold_fresh, 2);

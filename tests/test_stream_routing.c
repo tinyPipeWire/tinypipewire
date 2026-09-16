@@ -83,9 +83,9 @@ static void test_mode_is_fixed_after_connect(void)
     tpw_stream_h s = make_capture();
     tpw_audio_config cfg = { .sample_rate = 48000, .channels = 2 };
 
-    TPW_ASSERT_EQ(tpw_stream_set_autoconnect(s, false), TPW_STREAM_OK);
-    TPW_ASSERT_EQ(tpw_stream_set_audio_config(s, &cfg), TPW_STREAM_OK);
-    TPW_ASSERT_EQ(tpw_stream_set_autoconnect(s, true), TPW_STREAM_ERR_INVALID_ARG);
+    TPW_ASSERT_EQ(tpw_stream_set_autoconnect(s, false), TPW_OK);
+    TPW_ASSERT_EQ(tpw_stream_set_audio_config(s, &cfg), TPW_OK);
+    TPW_ASSERT_EQ(tpw_stream_set_autoconnect(s, true), TPW_ERR_INVALID_ARG);
 
     tpw_stream_destroy(s);
 }
@@ -99,9 +99,9 @@ static void test_mode_is_fixed_after_video_connect(void)
     TPW_ASSERT(s != NULL);
     tpw_video_config cfg = { .width = 640, .height = 480, .pixel_format = "YUYV", .fps = 30 };
 
-    TPW_ASSERT_EQ(tpw_stream_set_video_config(s, &cfg), TPW_STREAM_OK);
-    TPW_ASSERT_EQ(tpw_stream_set_autoconnect(s, false), TPW_STREAM_ERR_INVALID_ARG);
-    TPW_ASSERT_EQ(tpw_stream_set_autoconnect(s, true), TPW_STREAM_ERR_INVALID_ARG);
+    TPW_ASSERT_EQ(tpw_stream_set_video_config(s, &cfg), TPW_OK);
+    TPW_ASSERT_EQ(tpw_stream_set_autoconnect(s, false), TPW_ERR_INVALID_ARG);
+    TPW_ASSERT_EQ(tpw_stream_set_autoconnect(s, true), TPW_ERR_INVALID_ARG);
     TPW_ASSERT(((struct tpw_stream*)s)->autoconnect); /* unchanged by the refusals */
 
     tpw_stream_destroy(s);
@@ -111,17 +111,17 @@ static void test_mode_is_fixed_after_video_connect(void)
 static void test_hint_and_manual_are_exclusive(void)
 {
     tpw_stream_h a = make_capture();
-    TPW_ASSERT_EQ(tpw_stream_set_target(a, "some-device"), TPW_STREAM_OK);
-    TPW_ASSERT_EQ(tpw_stream_set_autoconnect(a, false), TPW_STREAM_ERR_INVALID_ARG);
+    TPW_ASSERT_EQ(tpw_stream_set_target(a, "some-device"), TPW_OK);
+    TPW_ASSERT_EQ(tpw_stream_set_autoconnect(a, false), TPW_ERR_INVALID_ARG);
     TPW_ASSERT(((struct tpw_stream*)a)->autoconnect); /* unchanged by the refusal */
     tpw_stream_destroy(a);
 
     tpw_stream_h b = make_capture();
-    TPW_ASSERT_EQ(tpw_stream_set_autoconnect(b, false), TPW_STREAM_OK);
-    TPW_ASSERT_EQ(tpw_stream_set_target(b, "some-device"), TPW_STREAM_ERR_INVALID_ARG);
+    TPW_ASSERT_EQ(tpw_stream_set_autoconnect(b, false), TPW_OK);
+    TPW_ASSERT_EQ(tpw_stream_set_target(b, "some-device"), TPW_ERR_INVALID_ARG);
     TPW_ASSERT(((struct tpw_stream*)b)->target == NULL); /* unchanged by the refusal */
     /* Clearing a target is not naming one, so it stays allowed. */
-    TPW_ASSERT_EQ(tpw_stream_set_target(b, NULL), TPW_STREAM_OK);
+    TPW_ASSERT_EQ(tpw_stream_set_target(b, NULL), TPW_OK);
     tpw_stream_destroy(b);
 }
 
@@ -131,21 +131,21 @@ static void test_link_ordering_and_mode(void)
 {
     tpw_stream_h auto_s = make_capture();
     tpw_audio_config cfg = { .sample_rate = 48000, .channels = 2 };
-    TPW_ASSERT_EQ(tpw_stream_set_audio_config(auto_s, &cfg), TPW_STREAM_OK);
+    TPW_ASSERT_EQ(tpw_stream_set_audio_config(auto_s, &cfg), TPW_OK);
     /* autoconnect is on: refused on the mode, before anything is looked up */
-    TPW_ASSERT_EQ(tpw_stream_link(auto_s, "some-device"), TPW_STREAM_ERR_INVALID_ARG);
+    TPW_ASSERT_EQ(tpw_stream_link(auto_s, "some-device"), TPW_ERR_INVALID_ARG);
     tpw_stream_destroy(auto_s);
 
     tpw_stream_h s = make_capture();
-    TPW_ASSERT_EQ(tpw_stream_set_autoconnect(s, false), TPW_STREAM_OK);
+    TPW_ASSERT_EQ(tpw_stream_set_autoconnect(s, false), TPW_OK);
     /* before the format, and before start */
-    TPW_ASSERT_EQ(tpw_stream_link(s, "some-device"), TPW_STREAM_ERR_NOT_CONFIGURED);
-    TPW_ASSERT_EQ(tpw_stream_set_audio_config(s, &cfg), TPW_STREAM_OK);
-    TPW_ASSERT_EQ(tpw_stream_link(s, "some-device"), TPW_STREAM_ERR_NOT_CONFIGURED);
+    TPW_ASSERT_EQ(tpw_stream_link(s, "some-device"), TPW_ERR_NOT_CONFIGURED);
+    TPW_ASSERT_EQ(tpw_stream_set_audio_config(s, &cfg), TPW_OK);
+    TPW_ASSERT_EQ(tpw_stream_link(s, "some-device"), TPW_ERR_NOT_CONFIGURED);
 
     /* argument checking does not depend on the graph either */
-    TPW_ASSERT_EQ(tpw_stream_link(s, NULL), TPW_STREAM_ERR_INVALID_ARG);
-    TPW_ASSERT_EQ(tpw_stream_link(s, ""), TPW_STREAM_ERR_INVALID_ARG);
+    TPW_ASSERT_EQ(tpw_stream_link(s, NULL), TPW_ERR_INVALID_ARG);
+    TPW_ASSERT_EQ(tpw_stream_link(s, ""), TPW_ERR_INVALID_ARG);
 
     tpw_stream_destroy(s);
 }
@@ -154,10 +154,10 @@ static void test_link_ordering_and_mode(void)
 static void test_unlink_without_links_is_refused(void)
 {
     tpw_stream_h s = make_capture();
-    TPW_ASSERT_EQ(tpw_stream_unlink(s), TPW_STREAM_ERR_NOT_CONFIGURED);
+    TPW_ASSERT_EQ(tpw_stream_unlink(s), TPW_ERR_NOT_CONFIGURED);
 
-    TPW_ASSERT_EQ(tpw_stream_set_autoconnect(s, false), TPW_STREAM_OK);
-    TPW_ASSERT_EQ(tpw_stream_unlink(s), TPW_STREAM_ERR_NOT_CONFIGURED);
+    TPW_ASSERT_EQ(tpw_stream_set_autoconnect(s, false), TPW_OK);
+    TPW_ASSERT_EQ(tpw_stream_unlink(s), TPW_ERR_NOT_CONFIGURED);
 
     tpw_stream_destroy(s);
 }
@@ -168,12 +168,12 @@ static void test_link_reports_timeout_or_missing_target(void)
 {
     tpw_stream_h s = make_capture();
     tpw_audio_config cfg = { .sample_rate = 48000, .channels = 2 };
-    TPW_ASSERT_EQ(tpw_stream_set_autoconnect(s, false), TPW_STREAM_OK);
-    TPW_ASSERT_EQ(tpw_stream_set_audio_config(s, &cfg), TPW_STREAM_OK);
-    TPW_ASSERT_EQ(tpw_stream_start(s), TPW_STREAM_OK);
+    TPW_ASSERT_EQ(tpw_stream_set_autoconnect(s, false), TPW_OK);
+    TPW_ASSERT_EQ(tpw_stream_set_audio_config(s, &cfg), TPW_OK);
+    TPW_ASSERT_EQ(tpw_stream_start(s), TPW_OK);
 
     int res = tpw_stream_link(s, "tpw-test-no-such-node");
-    TPW_ASSERT(res == TPW_STREAM_ERR_TIMEOUT || res == TPW_STREAM_ERR_NOT_FOUND);
+    TPW_ASSERT(res == TPW_ERR_TIMEOUT || res == TPW_ERR_NOT_FOUND);
 
     tpw_stream_destroy(s);
 }
@@ -185,11 +185,11 @@ static void test_opted_out_and_unlinked_runs(void)
     tpw_stream_h s = make_capture();
     tpw_audio_config cfg = { .sample_rate = 48000, .channels = 2 };
 
-    TPW_ASSERT_EQ(tpw_stream_set_autoconnect(s, false), TPW_STREAM_OK);
-    TPW_ASSERT_EQ(tpw_stream_set_audio_config(s, &cfg), TPW_STREAM_OK);
-    TPW_ASSERT_EQ(tpw_stream_start(s), TPW_STREAM_OK);
+    TPW_ASSERT_EQ(tpw_stream_set_autoconnect(s, false), TPW_OK);
+    TPW_ASSERT_EQ(tpw_stream_set_audio_config(s, &cfg), TPW_OK);
+    TPW_ASSERT_EQ(tpw_stream_start(s), TPW_OK);
     TPW_ASSERT(((struct tpw_stream*)s)->links == NULL);
-    TPW_ASSERT_EQ(tpw_stream_stop(s, false), TPW_STREAM_OK);
+    TPW_ASSERT_EQ(tpw_stream_stop(s, false), TPW_OK);
 
     tpw_stream_destroy(s);
 }
@@ -199,16 +199,16 @@ static void test_opted_out_and_unlinked_runs(void)
 static void test_get_target_list(void)
 {
     size_t count = 99;
-    TPW_ASSERT_EQ(tpw_stream_get_target_list(NULL, NULL, 0, &count), TPW_STREAM_ERR_INVALID_ARG);
+    TPW_ASSERT_EQ(tpw_stream_get_target_list(NULL, NULL, 0, &count), TPW_ERR_INVALID_ARG);
     TPW_ASSERT_EQ(count, (size_t)0);
 
     tpw_stream_h s = make_capture();
-    TPW_ASSERT_EQ(tpw_stream_get_target_list(s, NULL, 0, NULL), TPW_STREAM_ERR_INVALID_ARG);
-    TPW_ASSERT_EQ(tpw_stream_get_target_list(s, NULL, 0, &count), TPW_STREAM_OK);
+    TPW_ASSERT_EQ(tpw_stream_get_target_list(s, NULL, 0, NULL), TPW_ERR_INVALID_ARG);
+    TPW_ASSERT_EQ(tpw_stream_get_target_list(s, NULL, 0, &count), TPW_OK);
 
     tpw_target_info targets[8];
     size_t again = 0;
-    TPW_ASSERT_EQ(tpw_stream_get_target_list(s, targets, 8, &again), TPW_STREAM_OK);
+    TPW_ASSERT_EQ(tpw_stream_get_target_list(s, targets, 8, &again), TPW_OK);
     TPW_ASSERT_EQ(again, count);
     for (size_t i = 0; i < again && i < 8; i++)
         TPW_ASSERT(targets[i].name[0] != '\0');

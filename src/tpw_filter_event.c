@@ -266,23 +266,23 @@ int tpw_filter_port_get_event(tpw_filter_port_h port_handle, size_t index, tpw_e
 {
     struct tpw_filter_port* port = (struct tpw_filter_port*)port_handle;
     if (!port || port->media_type != TPW_STREAM_TYPE_EVENT || port->direction != TPW_FILTER_PORT_INPUT || !out)
-        return TPW_STREAM_ERR_INVALID_ARG;
+        return TPW_ERR_INVALID_ARG;
     if (index >= port->n_incoming_events)
-        return TPW_STREAM_ERR_INVALID_ARG;
+        return TPW_ERR_INVALID_ARG;
 
     *out = port->incoming_events[index];
-    return TPW_STREAM_OK;
+    return TPW_OK;
 }
 
 int tpw_filter_port_push_event(tpw_filter_port_h port_handle, const tpw_event* event)
 {
     struct tpw_filter_port* port = (struct tpw_filter_port*)port_handle;
     if (!port || port->media_type != TPW_STREAM_TYPE_EVENT || !event)
-        return TPW_STREAM_ERR_INVALID_ARG;
+        return TPW_ERR_INVALID_ARG;
     if (event->size > 0 && !event->data)
-        return TPW_STREAM_ERR_INVALID_ARG;
+        return TPW_ERR_INVALID_ARG;
     if (!tpw_event_kind_key_valid(event->kind, event->key))
-        return TPW_STREAM_ERR_INVALID_ARG;
+        return TPW_ERR_INVALID_ARG;
 
     struct tpw_filter* filter = port->filter;
     if (port->direction == TPW_FILTER_PORT_INPUT) {
@@ -290,7 +290,7 @@ int tpw_filter_port_push_event(tpw_filter_port_h port_handle, const tpw_event* e
         pthread_mutex_lock(&filter->push_lock);
         bool staged = tpw_filter_pending_event_append(port, event);
         pthread_mutex_unlock(&filter->push_lock);
-        return staged ? TPW_STREAM_OK : TPW_STREAM_ERR_NO_MEMORY;
+        return staged ? TPW_OK : TPW_ERR_NO_MEMORY;
     }
 
     /* An output port is pushed from inside the processing callback, which
@@ -302,7 +302,7 @@ int tpw_filter_port_push_event(tpw_filter_port_h port_handle, const tpw_event* e
     if (!tpw_filter_pending_event_append(port, event)) {
         if (lock)
             pw_thread_loop_unlock(filter->conn.loop);
-        return TPW_STREAM_ERR_NO_MEMORY;
+        return TPW_ERR_NO_MEMORY;
     }
 
     /* A push must fit the output buffer this cycle dequeued, so an oversized
@@ -312,10 +312,10 @@ int tpw_filter_port_push_event(tpw_filter_port_h port_handle, const tpw_event* e
         tpw_filter_pending_event_pop_last(port);
         if (lock)
             pw_thread_loop_unlock(filter->conn.loop);
-        return TPW_STREAM_ERR_INVALID_ARG;
+        return TPW_ERR_INVALID_ARG;
     }
 
     if (lock)
         pw_thread_loop_unlock(filter->conn.loop);
-    return TPW_STREAM_OK;
+    return TPW_OK;
 }

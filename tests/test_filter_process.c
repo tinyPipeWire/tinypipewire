@@ -74,7 +74,7 @@ int main(void)
     TPW_ASSERT(tpw_filter_add_audio_port(filter, TPW_FILTER_PORT_INPUT, &cfg) != NULL);
     TPW_ASSERT(tpw_filter_add_audio_port(filter, TPW_FILTER_PORT_OUTPUT, &cfg) != NULL);
 
-    TPW_ASSERT_EQ(tpw_filter_start(filter), TPW_STREAM_OK);
+    TPW_ASSERT_EQ(tpw_filter_start(filter), TPW_OK);
     sleep(1);
 
     /* All three ports' buffers must arrive together, every cycle. */
@@ -103,7 +103,7 @@ int main(void)
     TPW_ASSERT(tpw_filter_add_signal_port(mixed, TPW_FILTER_PORT_INPUT) != NULL);
     TPW_ASSERT(tpw_filter_add_event_port(mixed, TPW_FILTER_PORT_INPUT) != NULL);
 
-    TPW_ASSERT_EQ(tpw_filter_start(mixed), TPW_STREAM_OK);
+    TPW_ASSERT_EQ(tpw_filter_start(mixed), TPW_OK);
     sleep(1);
 
     TPW_ASSERT(g_mixed_cycles > 0);
@@ -125,7 +125,7 @@ int main(void)
     TPW_ASSERT(tpw_filter_add_video_port_ex(dmabuf_mixed, TPW_FILTER_PORT_INPUT, &vcfg, &dmabuf_opts) != NULL);
     TPW_ASSERT(tpw_filter_add_signal_port(dmabuf_mixed, TPW_FILTER_PORT_INPUT) != NULL);
 
-    TPW_ASSERT_EQ(tpw_filter_start(dmabuf_mixed), TPW_STREAM_OK);
+    TPW_ASSERT_EQ(tpw_filter_start(dmabuf_mixed), TPW_OK);
     sleep(1);
 
     TPW_ASSERT(g_dmabuf_mixed_cycles > 0);
@@ -144,7 +144,7 @@ int main(void)
     for (size_t i = 0; i < n_ports; i++)
         TPW_ASSERT(tpw_filter_add_audio_port(many, TPW_FILTER_PORT_INPUT, &cfg) != NULL);
 
-    TPW_ASSERT_EQ(tpw_filter_start(many), TPW_STREAM_OK);
+    TPW_ASSERT_EQ(tpw_filter_start(many), TPW_OK);
     sleep(1);
 
     TPW_ASSERT(g_many_cycles > 0);

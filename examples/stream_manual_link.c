@@ -68,15 +68,15 @@ int main(int argc, char** argv)
     tpw_stream_set_error_cb(s, on_error);
 
     /* From here the session manager will not wire this stream. */
-    if (tpw_stream_set_autoconnect(s, false) != TPW_STREAM_OK) {
+    if (tpw_stream_set_autoconnect(s, false) != TPW_OK) {
         fprintf(stderr, "failed to take over routing\n");
         tpw_stream_destroy(s);
         return 1;
     }
 
     tpw_audio_config cfg = { .sample_rate = 48000, .channels = 2, .format = "S16" };
-    if (tpw_stream_set_audio_config(s, &cfg) != TPW_STREAM_OK ||
-        tpw_stream_start(s) != TPW_STREAM_OK) {
+    if (tpw_stream_set_audio_config(s, &cfg) != TPW_OK ||
+        tpw_stream_start(s) != TPW_OK) {
         fprintf(stderr, "failed to configure or start the stream\n");
         tpw_stream_destroy(s);
         return 1;
@@ -86,7 +86,7 @@ int main(int argc, char** argv)
     wait_for_enter("press Enter to link... ");
 
     int res = tpw_stream_link(s, argv[1]);
-    if (res != TPW_STREAM_OK) {
+    if (res != TPW_OK) {
         fprintf(stderr, "link failed (%d)\n", res);
         tpw_stream_destroy(s);
         return 1;
@@ -102,7 +102,7 @@ int main(int argc, char** argv)
     if (argc > 2) {
         wait_for_enter("press Enter to re-target... ");
         tpw_stream_unlink(s);
-        if (tpw_stream_link(s, argv[2]) == TPW_STREAM_OK)
+        if (tpw_stream_link(s, argv[2]) == TPW_OK)
             printf("moved to %s\n", argv[2]);
         else
             fprintf(stderr, "could not move to %s\n", argv[2]);

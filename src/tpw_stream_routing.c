@@ -46,7 +46,7 @@ static void tpw_stream_on_node_removed(void* data, uint32_t id)
     tpw_log_warning("stream: linked device disappeared");
     tpw_stream_release_links(stream);
     if (stream->error_cb)
-        stream->error_cb((tpw_stream_h)stream, TPW_STREAM_ERR_SOURCE_UNAVAILABLE, stream->user_data);
+        stream->error_cb((tpw_stream_h)stream, TPW_ERR_SOURCE_UNAVAILABLE, stream->user_data);
 }
 
 /* How many ports this stream should have once the server has published them. */
@@ -86,13 +86,13 @@ static int tpw_stream_await_own_ports(struct tpw_stream* stream, size_t expected
         if (pw_thread_loop_timed_wait_full(stream->conn.loop, &deadline) < 0) {
             pw_thread_loop_unlock(stream->conn.loop);
             tpw_log_error("stream: timed out waiting for this stream to appear in the graph");
-            return TPW_STREAM_ERR_TIMEOUT;
+            return TPW_ERR_TIMEOUT;
         }
     }
 
     pw_thread_loop_unlock(stream->conn.loop);
     *out_node_id = node_id;
-    return TPW_STREAM_OK;
+    return TPW_OK;
 }
 
 /* --- target resolution ------------------------------------------------ */
@@ -128,13 +128,13 @@ int tpw_stream_get_target_list(tpw_stream_h handle, tpw_target_info* out, size_t
 {
     struct tpw_stream* stream = (struct tpw_stream*)handle;
     if (!found)
-        return TPW_STREAM_ERR_INVALID_ARG;
+        return TPW_ERR_INVALID_ARG;
 
     *found = 0;
     if (!stream)
-        return TPW_STREAM_ERR_INVALID_ARG;
+        return TPW_ERR_INVALID_ARG;
     if (tpw_stream_refuse_in_callback(stream, true, __func__))
-        return TPW_STREAM_ERR_IN_CALLBACK;
+        return TPW_ERR_IN_CALLBACK;
     int bound = tpw_pw_registry_bind(&stream->registry, &stream->conn);
     if (bound < 0)
         return tpw_pw_error_from_sync(bound);
@@ -158,7 +158,7 @@ int tpw_stream_get_target_list(tpw_stream_h handle, tpw_target_info* out, size_t
     pw_thread_loop_unlock(stream->conn.loop);
 
     *found = n;
-    return TPW_STREAM_OK;
+    return TPW_OK;
 }
 
 int tpw_stream_get_target_video_formats(tpw_stream_h handle, const char* target,
@@ -167,19 +167,19 @@ int tpw_stream_get_target_video_formats(tpw_stream_h handle, const char* target,
 {
     struct tpw_stream* stream = (struct tpw_stream*)handle;
     if (!found)
-        return TPW_STREAM_ERR_INVALID_ARG;
+        return TPW_ERR_INVALID_ARG;
 
     *found = 0;
     if (!stream || stream->type != TPW_STREAM_TYPE_VIDEO)
-        return TPW_STREAM_ERR_INVALID_ARG;
+        return TPW_ERR_INVALID_ARG;
     if (tpw_stream_refuse_in_callback(stream, true, __func__))
-        return TPW_STREAM_ERR_IN_CALLBACK;
+        return TPW_ERR_IN_CALLBACK;
 
     /* Fall back to the target already set, which is the pairing this call
      * exists for: pick a device, then ask what it can deliver. */
     const char* name = target ? target : stream->target;
     if (!name)
-        return TPW_STREAM_ERR_INVALID_ARG;
+        return TPW_ERR_INVALID_ARG;
     int bound = tpw_pw_registry_bind(&stream->registry, &stream->conn);
     if (bound < 0)
         return tpw_pw_error_from_sync(bound);
@@ -187,7 +187,7 @@ int tpw_stream_get_target_video_formats(tpw_stream_h handle, const char* target,
     uint32_t node_id = tpw_stream_resolve_target(stream, name);
     if (!node_id) {
         tpw_log_warning("stream: no node named '%s' to read formats from", name);
-        return TPW_STREAM_ERR_NOT_FOUND;
+        return TPW_ERR_NOT_FOUND;
     }
 
     return tpw_pw_enum_video_formats(&stream->conn, &stream->registry, node_id, out, out_len, found);
@@ -250,7 +250,7 @@ static int tpw_stream_link_one(struct tpw_stream* stream, struct tpw_stream_link
         pw_properties_new(PW_KEY_LINK_OUTPUT_NODE, on, PW_KEY_LINK_OUTPUT_PORT, op,
                           PW_KEY_LINK_INPUT_NODE, in, PW_KEY_LINK_INPUT_PORT, ip, NULL);
     if (!props)
-        return TPW_STREAM_ERR_NO_MEMORY;
+        return TPW_ERR_NO_MEMORY;
 
     link->stream = stream;
     link->seen_active = false;
@@ -263,22 +263,22 @@ static int tpw_stream_link_one(struct tpw_stream* stream, struct tpw_stream_link
     if (!link->proxy) {
         pw_thread_loop_unlock(stream->conn.loop);
         pw_properties_free(props);
-        return TPW_STREAM_ERR_CONNECT_FAILED;
+        return TPW_ERR_CONNECT_FAILED;
     }
     pw_proxy_add_object_listener(link->proxy, &link->listener, &tpw_stream_link_events, link);
 
     struct timespec deadline;
     pw_thread_loop_get_time(stream->conn.loop, &deadline, TPW_LINK_TIMEOUT_NSEC);
 
-    int res = TPW_STREAM_OK;
+    int res = TPW_OK;
     while (!link->seen_active && !link->lost) {
         if (pw_thread_loop_timed_wait_full(stream->conn.loop, &deadline) < 0) {
-            res = TPW_STREAM_ERR_TIMEOUT;
+            res = TPW_ERR_TIMEOUT;
             break;
         }
     }
     if (link->lost)
-        res = TPW_STREAM_ERR_INVALID_FORMAT;
+        res = TPW_ERR_INVALID_FORMAT;
 
     pw_thread_loop_unlock(stream->conn.loop);
     pw_properties_free(props);
@@ -289,15 +289,15 @@ int tpw_stream_link(tpw_stream_h handle, const char* target)
 {
     struct tpw_stream* stream = (struct tpw_stream*)handle;
     if (!stream || !target || !*target)
-        return TPW_STREAM_ERR_INVALID_ARG;
+        return TPW_ERR_INVALID_ARG;
     if (tpw_stream_refuse_in_callback(stream, true, __func__))
-        return TPW_STREAM_ERR_IN_CALLBACK;
+        return TPW_ERR_IN_CALLBACK;
     if (stream->autoconnect)
-        return TPW_STREAM_ERR_INVALID_ARG; /* two parties would own the wiring */
+        return TPW_ERR_INVALID_ARG; /* two parties would own the wiring */
     if (stream->links)
-        return TPW_STREAM_ERR_INVALID_ARG; /* unlink first to re-target */
+        return TPW_ERR_INVALID_ARG; /* unlink first to re-target */
     if (stream->state != TPW_STREAM_STATE_RUNNING || !stream->pw_stream)
-        return TPW_STREAM_ERR_NOT_CONFIGURED; /* the graph is where we look things up */
+        return TPW_ERR_NOT_CONFIGURED; /* the graph is where we look things up */
 
     int bound = tpw_pw_registry_bind(&stream->registry, &stream->conn);
     if (bound < 0)
@@ -315,7 +315,7 @@ int tpw_stream_link(tpw_stream_h handle, const char* target)
     uint32_t target_node = tpw_stream_resolve_target(stream, target);
     if (!target_node) {
         tpw_log_error("stream: no node named '%s' in the graph", target);
-        return TPW_STREAM_ERR_NOT_FOUND;
+        return TPW_ERR_NOT_FOUND;
     }
 
     /* Monitor ports sit in the opposite direction on both nodes and reuse the
@@ -330,22 +330,22 @@ int tpw_stream_link(tpw_stream_h handle, const char* target)
     size_t n_peer =
         tpw_pw_registry_list_ports(&stream->registry, target_node, peer_dir, peer, TPW_MAX_CHANNELS);
     if (n_own > TPW_MAX_CHANNELS || n_peer > TPW_MAX_CHANNELS)
-        return TPW_STREAM_ERR_INVALID_ARG;
+        return TPW_ERR_INVALID_ARG;
 
     size_t surplus = 0;
     size_t pairs = tpw_stream_pair_ports(n_own, n_peer, &surplus);
     if (pairs == 0) {
         tpw_log_error("stream: '%s' offers %zu channels, this stream needs %zu", target, n_peer, n_own);
-        return TPW_STREAM_ERR_INVALID_ARG;
+        return TPW_ERR_INVALID_ARG;
     }
 
     struct tpw_stream_link_set* set = calloc(1, sizeof(*set));
     if (!set)
-        return TPW_STREAM_ERR_NO_MEMORY;
+        return TPW_ERR_NO_MEMORY;
     set->links = calloc(pairs, sizeof(*set->links));
     if (!set->links) {
         free(set);
-        return TPW_STREAM_ERR_NO_MEMORY;
+        return TPW_ERR_NO_MEMORY;
     }
     set->target_node_id = target_node;
     stream->links = set;
@@ -368,19 +368,19 @@ int tpw_stream_link(tpw_stream_h handle, const char* target)
         tpw_log_warning("stream: '%s' has %zu channel(s) this stream does not reach, from %s on",
                         target, surplus, peer[pairs]->name);
 
-    return TPW_STREAM_OK;
+    return TPW_OK;
 }
 
 int tpw_stream_unlink(tpw_stream_h handle)
 {
     struct tpw_stream* stream = (struct tpw_stream*)handle;
     if (!stream)
-        return TPW_STREAM_ERR_INVALID_ARG;
+        return TPW_ERR_INVALID_ARG;
     if (tpw_stream_refuse_in_callback(stream, false, __func__))
-        return TPW_STREAM_ERR_IN_CALLBACK;
+        return TPW_ERR_IN_CALLBACK;
     if (!stream->links)
-        return TPW_STREAM_ERR_NOT_CONFIGURED;
+        return TPW_ERR_NOT_CONFIGURED;
 
     tpw_stream_release_links(stream);
-    return TPW_STREAM_OK;
+    return TPW_OK;
 }

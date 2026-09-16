@@ -115,12 +115,12 @@ int main(void)
     tpw_video_config cfg = { .width = 640, .height = 480, .pixel_format = "RGB", .fps = 30 };
 
     /* opts == NULL is exactly the non-_ex call: no DMABUF is requested. */
-    TPW_ASSERT_EQ(tpw_stream_set_video_config_ex(stream, &cfg, NULL), TPW_STREAM_OK);
+    TPW_ASSERT_EQ(tpw_stream_set_video_config_ex(stream, &cfg, NULL), TPW_OK);
     TPW_ASSERT(!((struct tpw_stream*)stream)->use_dmabuf);
 
     /* A plain caller that has never heard of the _ex call or DMABUF stays
      * exactly as it was before this feature existed. */
-    TPW_ASSERT_EQ(tpw_stream_set_video_config(stream, &cfg), TPW_STREAM_OK);
+    TPW_ASSERT_EQ(tpw_stream_set_video_config(stream, &cfg), TPW_OK);
     TPW_ASSERT(!((struct tpw_stream*)stream)->use_dmabuf);
 
     /* The accessor never fabricates a plane on a non-DMABUF stream, or for
@@ -131,7 +131,7 @@ int main(void)
 
     /* DMABUF is accepted on a video capture stream. */
     tpw_stream_dmabuf_opts dmabuf_opts = { .memory = TPW_PORT_MEMORY_DMABUF };
-    TPW_ASSERT_EQ(tpw_stream_set_video_config_ex(stream, &cfg, &dmabuf_opts), TPW_STREAM_OK);
+    TPW_ASSERT_EQ(tpw_stream_set_video_config_ex(stream, &cfg, &dmabuf_opts), TPW_OK);
     TPW_ASSERT(((struct tpw_stream*)stream)->use_dmabuf);
 
     /* Outside a cycle (no current buffer) the accessor still returns 0. */
@@ -153,25 +153,25 @@ int main(void)
      * applies. */
     tpw_stream_h audio = tpw_stream_create(TPW_STREAM_TYPE_AUDIO, noop_data_cb, NULL);
     TPW_ASSERT(audio != NULL);
-    TPW_ASSERT_EQ(tpw_stream_set_video_config_ex(audio, &cfg, &dmabuf_opts), TPW_STREAM_ERR_INVALID_ARG);
+    TPW_ASSERT_EQ(tpw_stream_set_video_config_ex(audio, &cfg, &dmabuf_opts), TPW_ERR_INVALID_ARG);
     tpw_stream_destroy(audio);
 
     tpw_stream_h playback = tpw_stream_create_playback(noop_playback_cb, NULL);
     TPW_ASSERT(playback != NULL);
-    TPW_ASSERT_EQ(tpw_stream_set_video_config_ex(playback, &cfg, &dmabuf_opts), TPW_STREAM_ERR_INVALID_ARG);
+    TPW_ASSERT_EQ(tpw_stream_set_video_config_ex(playback, &cfg, &dmabuf_opts), TPW_ERR_INVALID_ARG);
     tpw_stream_destroy(playback);
 
     /* MJPEG and H.264 frames are never handed out as DMABUF. */
     tpw_stream_h mjpg = tpw_stream_create(TPW_STREAM_TYPE_VIDEO, noop_data_cb, NULL);
     TPW_ASSERT(mjpg != NULL);
     tpw_video_config mjpg_cfg = { .width = 640, .height = 480, .pixel_format = "MJPG", .fps = 30 };
-    TPW_ASSERT_EQ(tpw_stream_set_video_config_ex(mjpg, &mjpg_cfg, &dmabuf_opts), TPW_STREAM_ERR_INVALID_ARG);
+    TPW_ASSERT_EQ(tpw_stream_set_video_config_ex(mjpg, &mjpg_cfg, &dmabuf_opts), TPW_ERR_INVALID_ARG);
     tpw_stream_destroy(mjpg);
 
     tpw_stream_h h264 = tpw_stream_create(TPW_STREAM_TYPE_VIDEO, noop_data_cb, NULL);
     TPW_ASSERT(h264 != NULL);
     tpw_video_config h264_cfg = { .width = 640, .height = 480, .pixel_format = "H264", .fps = 30 };
-    TPW_ASSERT_EQ(tpw_stream_set_video_config_ex(h264, &h264_cfg, &dmabuf_opts), TPW_STREAM_ERR_INVALID_ARG);
+    TPW_ASSERT_EQ(tpw_stream_set_video_config_ex(h264, &h264_cfg, &dmabuf_opts), TPW_ERR_INVALID_ARG);
     tpw_stream_destroy(h264);
 
     return 0;

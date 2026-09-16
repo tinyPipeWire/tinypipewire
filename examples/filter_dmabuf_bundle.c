@@ -69,7 +69,7 @@ int main(void)
      * picks the driver). */
     tpw_filter_set_period_hint(filter, 10000000);
 
-    if (tpw_filter_start(filter) != TPW_STREAM_OK) {
+    if (tpw_filter_start(filter) != TPW_OK) {
         fprintf(stderr, "failed to start filter\n");
         tpw_filter_destroy(filter);
         return 1;

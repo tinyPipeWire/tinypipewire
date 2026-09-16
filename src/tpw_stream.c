@@ -37,7 +37,7 @@ void tpw_stream_on_state_changed(void* data, enum pw_stream_state old, enum pw_s
         tpw_log_warning("stream: %s became unavailable",
                         stream->direction == TPW_STREAM_DIRECTION_PLAYBACK ? "output device" : "source");
         if (stream->error_cb)
-            stream->error_cb((tpw_stream_h)stream, TPW_STREAM_ERR_SOURCE_UNAVAILABLE, stream->user_data);
+            stream->error_cb((tpw_stream_h)stream, TPW_ERR_SOURCE_UNAVAILABLE, stream->user_data);
     }
 
     /* A stream's node id is only assigned once the server has seen it, so
@@ -64,7 +64,7 @@ static void tpw_stream_on_param_changed(void* data, uint32_t id, const struct sp
     if (stream->state == TPW_STREAM_STATE_RUNNING) {
         stream->state = TPW_STREAM_STATE_STOPPED;
         if (stream->error_cb)
-            stream->error_cb((tpw_stream_h)stream, TPW_STREAM_ERR_SOURCE_UNAVAILABLE, stream->user_data);
+            stream->error_cb((tpw_stream_h)stream, TPW_ERR_SOURCE_UNAVAILABLE, stream->user_data);
     }
 }
 
@@ -201,7 +201,7 @@ int tpw_stream_internal_connect(struct tpw_stream* stream, const struct spa_pod*
     if (!stream->pw_stream) {
         pw_thread_loop_unlock(stream->conn.loop);
         tpw_log_error("stream: failed to create pipewire stream");
-        return TPW_STREAM_ERR_CONNECT_FAILED;
+        return TPW_ERR_CONNECT_FAILED;
     }
 
     pw_stream_add_listener(stream->pw_stream, &stream->stream_listener,
@@ -223,7 +223,7 @@ int tpw_stream_internal_connect(struct tpw_stream* stream, const struct spa_pod*
         stream->pw_stream = NULL;
         pw_thread_loop_unlock(stream->conn.loop);
         tpw_log_error("stream: failed to connect (result=%d)", res);
-        return TPW_STREAM_ERR_CONNECT_FAILED;
+        return TPW_ERR_CONNECT_FAILED;
     }
 
     /* Set only now that the new stream exists, still under the lock: no
@@ -234,7 +234,7 @@ int tpw_stream_internal_connect(struct tpw_stream* stream, const struct spa_pod*
     pw_stream_set_active(stream->pw_stream, false);
 
     pw_thread_loop_unlock(stream->conn.loop);
-    return TPW_STREAM_OK;
+    return TPW_OK;
 }
 
 /* Replaces an optional string setting with a copy of `value`, where NULL or
@@ -245,48 +245,48 @@ static int tpw_stream_replace_string(char** slot, const char* value)
     if (value && *value) {
         copy = strdup(value);
         if (!copy)
-            return TPW_STREAM_ERR_NO_MEMORY;
+            return TPW_ERR_NO_MEMORY;
     }
 
     free(*slot);
     *slot = copy;
-    return TPW_STREAM_OK;
+    return TPW_OK;
 }
 
 int tpw_stream_set_error_cb(tpw_stream_h handle, tpw_stream_error_cb callback)
 {
     struct tpw_stream* stream = (struct tpw_stream*)handle;
     if (!stream)
-        return TPW_STREAM_ERR_INVALID_ARG;
+        return TPW_ERR_INVALID_ARG;
 
     stream->error_cb = callback;
-    return TPW_STREAM_OK;
+    return TPW_OK;
 }
 
 int tpw_stream_set_autoconnect(tpw_stream_h handle, bool enable)
 {
     struct tpw_stream* stream = (struct tpw_stream*)handle;
     if (!stream)
-        return TPW_STREAM_ERR_INVALID_ARG;
+        return TPW_ERR_INVALID_ARG;
     /* The routing mode is fixed once the format has connected the stream. */
     if (stream->pw_stream)
-        return TPW_STREAM_ERR_INVALID_ARG;
+        return TPW_ERR_INVALID_ARG;
     /* A target is a hint to the session manager, so it means nothing once the
      * application takes the wiring over. */
     if (!enable && stream->target)
-        return TPW_STREAM_ERR_INVALID_ARG;
+        return TPW_ERR_INVALID_ARG;
 
     stream->autoconnect = enable;
-    return TPW_STREAM_OK;
+    return TPW_OK;
 }
 
 int tpw_stream_set_target(tpw_stream_h handle, const char* target)
 {
     struct tpw_stream* stream = (struct tpw_stream*)handle;
     if (!stream)
-        return TPW_STREAM_ERR_INVALID_ARG;
+        return TPW_ERR_INVALID_ARG;
     if (target && *target && !stream->autoconnect)
-        return TPW_STREAM_ERR_INVALID_ARG; /* see tpw_stream_set_autoconnect() */
+        return TPW_ERR_INVALID_ARG; /* see tpw_stream_set_autoconnect() */
 
     return tpw_stream_replace_string(&stream->target, target);
 }
@@ -295,7 +295,7 @@ int tpw_stream_set_role(tpw_stream_h handle, const char* role)
 {
     struct tpw_stream* stream = (struct tpw_stream*)handle;
     if (!stream)
-        return TPW_STREAM_ERR_INVALID_ARG;
+        return TPW_ERR_INVALID_ARG;
 
     return tpw_stream_replace_string(&stream->role, role);
 }
@@ -304,29 +304,29 @@ int tpw_stream_start(tpw_stream_h handle)
 {
     struct tpw_stream* stream = (struct tpw_stream*)handle;
     if (!stream)
-        return TPW_STREAM_ERR_INVALID_ARG;
+        return TPW_ERR_INVALID_ARG;
     if (tpw_stream_refuse_in_callback(stream, false, __func__))
-        return TPW_STREAM_ERR_IN_CALLBACK;
+        return TPW_ERR_IN_CALLBACK;
     if (!stream->format_set || !stream->pw_stream)
-        return TPW_STREAM_ERR_NOT_CONFIGURED;
+        return TPW_ERR_NOT_CONFIGURED;
 
     pw_thread_loop_lock(stream->conn.loop);
     pw_stream_set_active(stream->pw_stream, true);
     pw_thread_loop_unlock(stream->conn.loop);
 
     stream->state = TPW_STREAM_STATE_RUNNING;
-    return TPW_STREAM_OK;
+    return TPW_OK;
 }
 
 int tpw_stream_stop(tpw_stream_h handle, bool drain)
 {
     struct tpw_stream* stream = (struct tpw_stream*)handle;
     if (!stream)
-        return TPW_STREAM_ERR_INVALID_ARG;
+        return TPW_ERR_INVALID_ARG;
     if (tpw_stream_refuse_in_callback(stream, drain, __func__))
-        return TPW_STREAM_ERR_IN_CALLBACK;
+        return TPW_ERR_IN_CALLBACK;
     if (stream->state != TPW_STREAM_STATE_RUNNING)
-        return TPW_STREAM_OK;
+        return TPW_OK;
 
     pw_thread_loop_lock(stream->conn.loop);
 
@@ -348,7 +348,7 @@ int tpw_stream_stop(tpw_stream_h handle, bool drain)
     pw_thread_loop_unlock(stream->conn.loop);
 
     stream->state = TPW_STREAM_STATE_STOPPED;
-    return TPW_STREAM_OK;
+    return TPW_OK;
 }
 
 void tpw_stream_destroy(tpw_stream_h handle)
