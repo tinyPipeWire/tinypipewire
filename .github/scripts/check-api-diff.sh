@@ -16,7 +16,7 @@ summary_file="${2:-}"
 base_dir="$(mktemp -d)/tpw"
 mkdir -p "$base_dir"
 
-PUBLIC_HEADERS="tpw_export.h tpw_stream.h tpw_filter.h tpw_log.h"
+PUBLIC_HEADERS="tpw_export.h tpw_types.h tpw_stream.h tpw_filter.h tpw_log.h"
 
 for f in $PUBLIC_HEADERS; do
     git show "$base_ref:include/tpw/$f" > "$base_dir/$f" 2>/dev/null

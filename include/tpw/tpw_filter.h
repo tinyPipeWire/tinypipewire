@@ -14,7 +14,7 @@
 #include <stddef.h>
 
 #include "tpw/tpw_export.h"
-#include "tpw/tpw_stream.h"
+#include "tpw/tpw_types.h"
 
 #ifdef __cplusplus
 extern "C" {
