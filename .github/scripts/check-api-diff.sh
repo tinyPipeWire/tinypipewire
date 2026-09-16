@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # Warns (does not fail the build) when a public function in include/tpw/*.h
 # is removed or has its signature changed compared to the base branch.
-# Entry point is tpw_filter.h since it transitively includes tpw_stream.h;
-# add new top-level public headers here if any are introduced.
+# Every public header is copied and preprocessed, so a header that another
+# one includes must be listed too; add new public headers to PUBLIC_HEADERS.
 #
 # Usage: check-api-diff.sh <base_ref> [summary_file]
 # Writes a markdown bullet list of changes to summary_file (if any), and
@@ -16,13 +16,17 @@ summary_file="${2:-}"
 base_dir="$(mktemp -d)/tpw"
 mkdir -p "$base_dir"
 
-for f in tpw_filter.h tpw_stream.h; do
+PUBLIC_HEADERS="tpw_export.h tpw_stream.h tpw_filter.h tpw_log.h"
+
+for f in $PUBLIC_HEADERS; do
     git show "$base_ref:include/tpw/$f" > "$base_dir/$f" 2>/dev/null
 done
 
 extract_signatures() {
     local include_dir="$1"
-    gcc -E -P -DTPW_API= -I "$include_dir" "$include_dir/tpw/tpw_filter.h" 2>/dev/null \
+    for header in $PUBLIC_HEADERS; do
+        gcc -E -P -DTPW_API= -I "$include_dir" "$include_dir/tpw/$header" 2>/dev/null
+    done \
         | tr '\n' ' ' | tr -s ' ' \
         | sed 's/;/;\n/g' \
         | grep -E 'tpw_[A-Za-z0-9_]+ *\(' \
