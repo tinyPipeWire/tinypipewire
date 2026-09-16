@@ -25,15 +25,15 @@ int tpw_stream_set_audio_config(tpw_stream_h handle, const tpw_audio_config* con
 {
     struct tpw_stream* stream = (struct tpw_stream*)handle;
     if (!stream || stream->type != TPW_STREAM_TYPE_AUDIO || !config)
-        return TPW_STREAM_ERR_INVALID_ARG;
+        return TPW_ERR_INVALID_ARG;
     if (tpw_stream_refuse_in_callback(stream, true, __func__))
-        return TPW_STREAM_ERR_IN_CALLBACK;
+        return TPW_ERR_IN_CALLBACK;
     if (config->sample_rate <= 0 || config->channels <= 0)
-        return TPW_STREAM_ERR_INVALID_FORMAT;
+        return TPW_ERR_INVALID_FORMAT;
 
     enum spa_audio_format fmt = tpw_spa_lookup_audio_format(config->format ? config->format : "S16");
     if (fmt == SPA_AUDIO_FORMAT_UNKNOWN)
-        return TPW_STREAM_ERR_INVALID_FORMAT;
+        return TPW_ERR_INVALID_FORMAT;
 
     uint8_t buffer[1024];
     struct spa_pod_builder b = SPA_POD_BUILDER_INIT(buffer, sizeof(buffer));
@@ -52,5 +52,5 @@ int tpw_stream_set_audio_config(tpw_stream_h handle, const tpw_audio_config* con
     stream->bytes_per_frame = tpw_audio_bytes_per_frame(fmt, config->channels);
     stream->format_set = true;
     stream->state = TPW_STREAM_STATE_FORMAT_SET;
-    return TPW_STREAM_OK;
+    return TPW_OK;
 }

@@ -196,12 +196,12 @@ static void run_bundle(const char* camera, const char* mic, const char* sensor, 
     TPW_ASSERT(b.video != NULL && b.mic != NULL && b.temp != NULL);
 
     if (hold)
-        TPW_ASSERT_EQ(tpw_filter_port_set_hold(b.video, true), TPW_STREAM_OK);
-    TPW_ASSERT_EQ(tpw_filter_set_period_hint(filter, HINT_NS), TPW_STREAM_OK);
-    TPW_ASSERT_EQ(tpw_filter_start(filter), TPW_STREAM_OK);
+        TPW_ASSERT_EQ(tpw_filter_port_set_hold(b.video, true), TPW_OK);
+    TPW_ASSERT_EQ(tpw_filter_set_period_hint(filter, HINT_NS), TPW_OK);
+    TPW_ASSERT_EQ(tpw_filter_start(filter), TPW_OK);
 
-    TPW_ASSERT_EQ(tpw_filter_port_link(b.video, camera), TPW_STREAM_OK);
-    TPW_ASSERT_EQ(tpw_filter_port_link(b.mic, mic), TPW_STREAM_OK);
+    TPW_ASSERT_EQ(tpw_filter_port_link(b.video, camera), TPW_OK);
+    TPW_ASSERT_EQ(tpw_filter_port_link(b.mic, mic), TPW_OK);
 
     b.filter = filter;
     b.sampling = 1;

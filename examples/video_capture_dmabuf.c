@@ -51,13 +51,13 @@ int main(void)
 
     tpw_video_config cfg = { .width = 640, .height = 480, .pixel_format = "YUYV", .fps = 30 };
     tpw_stream_dmabuf_opts opts = { .memory = TPW_PORT_MEMORY_DMABUF };
-    if (tpw_stream_set_video_config_ex(stream, &cfg, &opts) != TPW_STREAM_OK) {
+    if (tpw_stream_set_video_config_ex(stream, &cfg, &opts) != TPW_OK) {
         fprintf(stderr, "failed to request DMABUF video format\n");
         tpw_stream_destroy(stream);
         return 1;
     }
 
-    if (tpw_stream_start(stream) != TPW_STREAM_OK) {
+    if (tpw_stream_start(stream) != TPW_OK) {
         fprintf(stderr, "failed to start video stream\n");
         tpw_stream_destroy(stream);
         return 1;

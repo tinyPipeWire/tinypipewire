@@ -44,7 +44,7 @@ static void on_process(tpw_filter_h filter, tpw_filter_port_buffer* buffers, siz
     size_t count = tpw_filter_port_get_event_count(in);
     for (size_t i = 0; i < count; i++) {
         tpw_event ev;
-        if (tpw_filter_port_get_event(in, i, &ev) != TPW_STREAM_OK)
+        if (tpw_filter_port_get_event(in, i, &ev) != TPW_OK)
             continue;
         printf("filter_event_port: kind=%s offset=%u size=%zu\n", kind_name(ev.kind), ev.offset, ev.size);
         tpw_filter_port_push_event(out, &ev);
@@ -72,7 +72,7 @@ int main(void)
     printf("in port kind=%d, out port kind=%d (TPW_STREAM_TYPE_EVENT=%d)\n", tpw_filter_port_get_type(in),
            tpw_filter_port_get_type(out), TPW_STREAM_TYPE_EVENT);
 
-    if (tpw_filter_start(filter) != TPW_STREAM_OK) {
+    if (tpw_filter_start(filter) != TPW_OK) {
         fprintf(stderr, "failed to start filter\n");
         tpw_filter_destroy(filter);
         return 1;

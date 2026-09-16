@@ -93,16 +93,16 @@ int main(void)
         return TEST_SKIP;
     }
 
-    TPW_ASSERT_EQ(tpw_stream_set_error_cb(stream, on_error), TPW_STREAM_OK);
-    TPW_ASSERT_EQ(tpw_stream_set_target(stream, sink), TPW_STREAM_OK);
+    TPW_ASSERT_EQ(tpw_stream_set_error_cb(stream, on_error), TPW_OK);
+    TPW_ASSERT_EQ(tpw_stream_set_target(stream, sink), TPW_OK);
 
     tpw_audio_config cfg = { .sample_rate = RATE, .channels = CHANNELS, .format = "S16" };
-    TPW_ASSERT_EQ(tpw_stream_set_audio_config(stream, &cfg), TPW_STREAM_OK);
-    TPW_ASSERT_EQ(tpw_stream_start(stream), TPW_STREAM_OK);
+    TPW_ASSERT_EQ(tpw_stream_set_audio_config(stream, &cfg), TPW_OK);
+    TPW_ASSERT_EQ(tpw_stream_start(stream), TPW_OK);
 
     usleep(RUN_USEC);
 
-    TPW_ASSERT_EQ(tpw_stream_stop(stream, false), TPW_STREAM_OK);
+    TPW_ASSERT_EQ(tpw_stream_stop(stream, false), TPW_OK);
 
     printf("cycles=%u bytes=%zu pts=%s\n", c.cycles, c.bytes_asked,
            c.saw_pts ? "yes" : "no");
@@ -126,16 +126,16 @@ int main(void)
     TPW_ASSERT_EQ(c.cycles, settled);
 
     /* And the stream is restartable rather than spent. */
-    TPW_ASSERT_EQ(tpw_stream_start(stream), TPW_STREAM_OK);
+    TPW_ASSERT_EQ(tpw_stream_start(stream), TPW_OK);
     usleep(200 * 1000);
     TPW_ASSERT(c.cycles > settled);
 
     /* Drains, then stops like a plain stop: quiet and restartable. */
-    TPW_ASSERT_EQ(tpw_stream_stop(stream, true), TPW_STREAM_OK);
+    TPW_ASSERT_EQ(tpw_stream_stop(stream, true), TPW_OK);
     unsigned drained_at = c.cycles;
     usleep(200 * 1000);
     TPW_ASSERT_EQ(c.cycles, drained_at);
-    TPW_ASSERT_EQ(tpw_stream_start(stream), TPW_STREAM_OK);
+    TPW_ASSERT_EQ(tpw_stream_start(stream), TPW_OK);
     usleep(200 * 1000);
     TPW_ASSERT(c.cycles > drained_at);
 

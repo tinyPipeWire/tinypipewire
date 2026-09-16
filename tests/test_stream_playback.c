@@ -170,7 +170,7 @@ static void test_direction_and_video_rejection(void)
     TPW_ASSERT_EQ(((struct tpw_stream*)playback)->type, TPW_STREAM_TYPE_AUDIO);
 
     tpw_video_config vcfg = { .width = 640, .height = 480, .pixel_format = "I420", .fps = 30 };
-    TPW_ASSERT_EQ(tpw_stream_set_video_config(playback, &vcfg), TPW_STREAM_ERR_INVALID_ARG);
+    TPW_ASSERT_EQ(tpw_stream_set_video_config(playback, &vcfg), TPW_ERR_INVALID_ARG);
     TPW_ASSERT(!((struct tpw_stream*)playback)->format_set);
     tpw_stream_destroy(playback);
 
@@ -207,11 +207,11 @@ static void test_target_selection(void)
 
     TPW_ASSERT(stream->target == NULL); /* default device until told otherwise */
 
-    TPW_ASSERT_EQ(tpw_stream_set_target(handle, "alsa_output.some-sink"), TPW_STREAM_OK);
+    TPW_ASSERT_EQ(tpw_stream_set_target(handle, "alsa_output.some-sink"), TPW_OK);
     TPW_ASSERT(stream->target != NULL);
     TPW_ASSERT_EQ(strcmp(stream->target, "alsa_output.some-sink"), 0);
 
-    TPW_ASSERT_EQ(tpw_stream_set_target(handle, NULL), TPW_STREAM_OK);
+    TPW_ASSERT_EQ(tpw_stream_set_target(handle, NULL), TPW_OK);
     TPW_ASSERT(stream->target == NULL);
 
     tpw_stream_destroy(handle);
@@ -224,8 +224,8 @@ static void test_start_requires_a_format(void)
     tpw_stream_h handle = tpw_stream_create_playback(fill_cb, NULL);
     TPW_ASSERT(handle != NULL);
 
-    TPW_ASSERT_EQ(tpw_stream_start(handle), TPW_STREAM_ERR_NOT_CONFIGURED);
-    TPW_ASSERT_EQ(tpw_stream_stop(handle, false), TPW_STREAM_OK); /* stopping an idle stream is a no-op */
+    TPW_ASSERT_EQ(tpw_stream_start(handle), TPW_ERR_NOT_CONFIGURED);
+    TPW_ASSERT_EQ(tpw_stream_stop(handle, false), TPW_OK); /* stopping an idle stream is a no-op */
 
     tpw_stream_destroy(handle);
 }

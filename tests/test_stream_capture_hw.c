@@ -56,16 +56,16 @@ static void run_video_capture(const char* camera)
     struct counters c = { 0 };
     tpw_stream_h s = tpw_stream_create(TPW_STREAM_TYPE_VIDEO, on_data, &c);
     TPW_ASSERT(s != NULL);
-    TPW_ASSERT_EQ(tpw_stream_set_error_cb(s, on_error), TPW_STREAM_OK);
-    TPW_ASSERT_EQ(tpw_stream_set_autoconnect(s, false), TPW_STREAM_OK);
+    TPW_ASSERT_EQ(tpw_stream_set_error_cb(s, on_error), TPW_OK);
+    TPW_ASSERT_EQ(tpw_stream_set_autoconnect(s, false), TPW_OK);
 
     tpw_video_config cfg = { .width = 640, .height = 480, .pixel_format = "YUYV", .fps = 30 };
-    TPW_ASSERT_EQ(tpw_stream_set_video_config(s, &cfg), TPW_STREAM_OK);
-    TPW_ASSERT_EQ(tpw_stream_start(s), TPW_STREAM_OK);
-    TPW_ASSERT_EQ(tpw_stream_link(s, camera), TPW_STREAM_OK);
+    TPW_ASSERT_EQ(tpw_stream_set_video_config(s, &cfg), TPW_OK);
+    TPW_ASSERT_EQ(tpw_stream_start(s), TPW_OK);
+    TPW_ASSERT_EQ(tpw_stream_link(s, camera), TPW_OK);
 
     usleep(RUN_USEC);
-    TPW_ASSERT_EQ(tpw_stream_stop(s, false), TPW_STREAM_OK);
+    TPW_ASSERT_EQ(tpw_stream_stop(s, false), TPW_OK);
     tpw_stream_destroy(s);
 
     printf("video: frames=%u non_null_data=%u pts_seen=%u\n", c.frames, c.saw_non_null_data, c.saw_pts);
@@ -89,18 +89,18 @@ static void run_audio_capture(const char* mic)
     struct counters c = { 0 };
     tpw_stream_h s = tpw_stream_create(TPW_STREAM_TYPE_AUDIO, on_data, &c);
     TPW_ASSERT(s != NULL);
-    TPW_ASSERT_EQ(tpw_stream_set_error_cb(s, on_error), TPW_STREAM_OK);
-    TPW_ASSERT_EQ(tpw_stream_set_autoconnect(s, false), TPW_STREAM_OK);
+    TPW_ASSERT_EQ(tpw_stream_set_error_cb(s, on_error), TPW_OK);
+    TPW_ASSERT_EQ(tpw_stream_set_autoconnect(s, false), TPW_OK);
 
     tpw_audio_config cfg = { .sample_rate = 48000, .channels = 1 };
-    TPW_ASSERT_EQ(tpw_stream_set_audio_config(s, &cfg), TPW_STREAM_OK);
-    TPW_ASSERT_EQ(tpw_stream_start(s), TPW_STREAM_OK);
-    TPW_ASSERT_EQ(tpw_stream_link(s, mic), TPW_STREAM_OK);
+    TPW_ASSERT_EQ(tpw_stream_set_audio_config(s, &cfg), TPW_OK);
+    TPW_ASSERT_EQ(tpw_stream_start(s), TPW_OK);
+    TPW_ASSERT_EQ(tpw_stream_link(s, mic), TPW_OK);
 
     usleep(RUN_USEC);
     /* Draining a capture stream waits for already-queued frames to reach
      * this callback too, not just a playback stream's device. */
-    TPW_ASSERT_EQ(tpw_stream_stop(s, true), TPW_STREAM_OK);
+    TPW_ASSERT_EQ(tpw_stream_stop(s, true), TPW_OK);
     tpw_stream_destroy(s);
 
     printf("audio: frames=%u non_null_data=%u pts_seen=%u\n", c.frames, c.saw_non_null_data, c.saw_pts);
@@ -149,21 +149,21 @@ static void run_mjpg_capture_if_supported(const char* camera)
     struct mjpg_counters c = { 0 };
     tpw_stream_h s = tpw_stream_create(TPW_STREAM_TYPE_VIDEO, on_mjpg_data, &c);
     TPW_ASSERT(s != NULL);
-    TPW_ASSERT_EQ(tpw_stream_set_error_cb(s, on_mjpg_error), TPW_STREAM_OK);
-    TPW_ASSERT_EQ(tpw_stream_set_autoconnect(s, false), TPW_STREAM_OK);
+    TPW_ASSERT_EQ(tpw_stream_set_error_cb(s, on_mjpg_error), TPW_OK);
+    TPW_ASSERT_EQ(tpw_stream_set_autoconnect(s, false), TPW_OK);
 
     tpw_video_config cfg = { .width = 1280, .height = 720, .pixel_format = "MJPG", .fps = 30 };
-    TPW_ASSERT_EQ(tpw_stream_set_video_config(s, &cfg), TPW_STREAM_OK);
-    TPW_ASSERT_EQ(tpw_stream_start(s), TPW_STREAM_OK);
+    TPW_ASSERT_EQ(tpw_stream_set_video_config(s, &cfg), TPW_OK);
+    TPW_ASSERT_EQ(tpw_stream_start(s), TPW_OK);
 
-    if (tpw_stream_link(s, camera) != TPW_STREAM_OK) {
+    if (tpw_stream_link(s, camera) != TPW_OK) {
         printf("MJPG: camera rejected the request, skipping\n");
         tpw_stream_destroy(s);
         return;
     }
 
     usleep(RUN_USEC);
-    TPW_ASSERT_EQ(tpw_stream_stop(s, false), TPW_STREAM_OK);
+    TPW_ASSERT_EQ(tpw_stream_stop(s, false), TPW_OK);
     tpw_stream_destroy(s);
 
     printf("MJPG: frames=%u non_null_data=%u differing_sizes=%s\n", c.frames, c.saw_non_null_data,

@@ -38,17 +38,17 @@ typedef enum {
 
 /** @brief Library error codes. Negative values only; 0 is success. */
 typedef enum {
-    TPW_STREAM_OK                     = 0,  /**< Success. */
-    TPW_STREAM_ERR_INVALID_ARG        = -1, /**< A NULL/out-of-range argument, or a call invalid for the object's current state or routing mode. */
-    TPW_STREAM_ERR_CONNECT_FAILED     = -2, /**< Connecting to PipeWire, or asking it to create a stream, link or query, failed. */
-    TPW_STREAM_ERR_INVALID_FORMAT     = -3, /**< An unrecognized pixel/sample format string, or an out-of-range dimension/rate. */
-    TPW_STREAM_ERR_NOT_CONFIGURED     = -4, /**< Called before a required prior step, e.g. start() before a format was set, link() before start(), or unlink() with nothing linked. */
-    TPW_STREAM_ERR_SOURCE_UNAVAILABLE = -5, /**< The connected source disappeared, or could not provide the requested memory type (see tpw_stream_error_cb). */
-    TPW_STREAM_ERR_IN_CALLBACK        = -6, /**< Called from inside one of the object's own callbacks, where the call cannot run; call it again after the callback returns. */
-    TPW_STREAM_ERR_NOT_FOUND          = -7, /**< No node in the graph matches the target name or serial; it may have gone away or never existed. */
-    TPW_STREAM_ERR_TIMEOUT            = -8, /**< PipeWire did not answer, or a link did not negotiate, within the library's time limit; the same call may succeed if retried. */
-    TPW_STREAM_ERR_NO_MEMORY          = -9  /**< A memory allocation failed. */
-} tpw_stream_error;
+    TPW_OK                     = 0,  /**< Success. */
+    TPW_ERR_INVALID_ARG        = -1, /**< A NULL/out-of-range argument, or a call invalid for the object's current state or routing mode. */
+    TPW_ERR_CONNECT_FAILED     = -2, /**< Connecting to PipeWire, or asking it to create a stream, link or query, failed. */
+    TPW_ERR_INVALID_FORMAT     = -3, /**< An unrecognized pixel/sample format string, or an out-of-range dimension/rate. */
+    TPW_ERR_NOT_CONFIGURED     = -4, /**< Called before a required prior step, e.g. start() before a format was set, link() before start(), or unlink() with nothing linked. */
+    TPW_ERR_SOURCE_UNAVAILABLE = -5, /**< The connected source disappeared, or could not provide the requested memory type (see tpw_stream_error_cb). */
+    TPW_ERR_IN_CALLBACK        = -6, /**< Called from inside one of the object's own callbacks, where the call cannot run; call it again after the callback returns. */
+    TPW_ERR_NOT_FOUND          = -7, /**< No node in the graph matches the target name or serial; it may have gone away or never existed. */
+    TPW_ERR_TIMEOUT            = -8, /**< PipeWire did not answer, or a link did not negotiate, within the library's time limit; the same call may succeed if retried. */
+    TPW_ERR_NO_MEMORY          = -9  /**< A memory allocation failed. */
+} tpw_error;
 
 /**
  * @brief One delivered buffer of captured audio samples or a video frame.
@@ -67,7 +67,7 @@ typedef struct {
  * @brief Delivers one buffer of captured audio samples or a video frame.
  *
  * Runs on PipeWire's real-time data thread, so it must not block. Calls that
- * take the stream's loop lock are refused here with TPW_STREAM_ERR_IN_CALLBACK:
+ * take the stream's loop lock are refused here with TPW_ERR_IN_CALLBACK:
  * start, stop, link, unlink, the target queries and the format setters.
  * tpw_stream_destroy() is refused as well and only logs, so destroy the
  * stream after the callback returns.
@@ -111,12 +111,12 @@ typedef void (*tpw_stream_playback_cb)(tpw_stream_h stream, tpw_stream_playback_
  *
  * Runs on the stream's loop thread. A stop without drain and
  * tpw_stream_unlink() work here, but calls that would wait on this same
- * thread are refused with TPW_STREAM_ERR_IN_CALLBACK: a draining stop, link,
+ * thread are refused with TPW_ERR_IN_CALLBACK: a draining stop, link,
  * the target queries and the format setters. tpw_stream_destroy() is refused
  * and only logs, so re-route or destroy the stream after the callback returns.
  *
  * @param stream     The affected stream.
- * @param error_code A tpw_stream_error, currently always TPW_STREAM_ERR_SOURCE_UNAVAILABLE.
+ * @param error_code A tpw_error, currently always TPW_ERR_SOURCE_UNAVAILABLE.
  * @param user_data  The pointer passed to tpw_stream_create()/tpw_stream_create_playback().
  */
 typedef void (*tpw_stream_error_cb)(tpw_stream_h stream, int error_code, void* user_data);
@@ -153,7 +153,7 @@ TPW_API tpw_stream_h tpw_stream_create_playback(tpw_stream_playback_cb callback,
  * @brief Registers (or clears, with NULL) the optional async-error callback.
  * @param stream   The stream to configure.
  * @param callback The callback to invoke on source loss, or NULL to clear it.
- * @return TPW_STREAM_OK, or TPW_STREAM_ERR_INVALID_ARG for a NULL `stream`.
+ * @return TPW_OK, or TPW_ERR_INVALID_ARG for a NULL `stream`.
  */
 TPW_API int tpw_stream_set_error_cb(tpw_stream_h stream, tpw_stream_error_cb callback);
 
@@ -172,7 +172,7 @@ TPW_API int tpw_stream_set_error_cb(tpw_stream_h stream, tpw_stream_error_cb cal
  *
  * @param stream The stream to target, before its format is set.
  * @param target A node name or object.serial, or NULL to clear a previously set target.
- * @return TPW_STREAM_OK, TPW_STREAM_ERR_INVALID_ARG for a NULL `stream` or for a non-NULL `target` while autoconnect is off, or TPW_STREAM_ERR_NO_MEMORY when the name cannot be copied.
+ * @return TPW_OK, TPW_ERR_INVALID_ARG for a NULL `stream` or for a non-NULL `target` while autoconnect is off, or TPW_ERR_NO_MEMORY when the name cannot be copied.
  */
 TPW_API int tpw_stream_set_target(tpw_stream_h stream, const char* target);
 
@@ -188,7 +188,7 @@ TPW_API int tpw_stream_set_target(tpw_stream_h stream, const char* target);
  *
  * @param stream The stream to label, before its format is set.
  * @param role   A role name, or NULL to clear a previously set role.
- * @return TPW_STREAM_OK, TPW_STREAM_ERR_INVALID_ARG for a NULL `stream`, or TPW_STREAM_ERR_NO_MEMORY when the role cannot be copied.
+ * @return TPW_OK, TPW_ERR_INVALID_ARG for a NULL `stream`, or TPW_ERR_NO_MEMORY when the role cannot be copied.
  */
 TPW_API int tpw_stream_set_role(tpw_stream_h stream, const char* role);
 
@@ -215,8 +215,8 @@ typedef struct {
  * @param[in]  stream  Selects which targets qualify, by its own type/direction.
  * @param[out] out     Filled with up to `out_len` targets, or NULL to only count them.
  * @param[in]  out_len Capacity of `out`.
- * @param[out] found   The target count actually available, which may exceed `out_len` if it was too small; 0 on failure. A graph with no such node is TPW_STREAM_OK with 0, not an error.
- * @return TPW_STREAM_OK, TPW_STREAM_ERR_INVALID_ARG for a NULL `stream` or `found`, TPW_STREAM_ERR_IN_CALLBACK from inside a callback, TPW_STREAM_ERR_TIMEOUT when the registry does not answer in time, or TPW_STREAM_ERR_CONNECT_FAILED when it cannot be reached.
+ * @param[out] found   The target count actually available, which may exceed `out_len` if it was too small; 0 on failure. A graph with no such node is TPW_OK with 0, not an error.
+ * @return TPW_OK, TPW_ERR_INVALID_ARG for a NULL `stream` or `found`, TPW_ERR_IN_CALLBACK from inside a callback, TPW_ERR_TIMEOUT when the registry does not answer in time, or TPW_ERR_CONNECT_FAILED when it cannot be reached.
  */
 TPW_API int tpw_stream_get_target_list(tpw_stream_h stream, tpw_target_info* out, size_t out_len,
                                         size_t* found);
@@ -252,8 +252,8 @@ typedef struct {
  * @param[in]  target  A node name or object.serial, or NULL for the target already set with tpw_stream_set_target().
  * @param[out] out     Filled with up to `out_len` formats, or NULL to only count them.
  * @param[in]  out_len Capacity of `out`.
- * @param[out] found   The format count actually available, which may exceed `out_len` if it was too small; 0 on failure. A device reporting no format this library can name is TPW_STREAM_OK with 0, not an error.
- * @return TPW_STREAM_OK, TPW_STREAM_ERR_INVALID_ARG for a NULL or non-video stream, a NULL `found`, or no target to read, TPW_STREAM_ERR_NOT_FOUND for a target naming no node, TPW_STREAM_ERR_IN_CALLBACK from inside a callback, TPW_STREAM_ERR_TIMEOUT when the query does not answer in time, or TPW_STREAM_ERR_CONNECT_FAILED when it fails.
+ * @param[out] found   The format count actually available, which may exceed `out_len` if it was too small; 0 on failure. A device reporting no format this library can name is TPW_OK with 0, not an error.
+ * @return TPW_OK, TPW_ERR_INVALID_ARG for a NULL or non-video stream, a NULL `found`, or no target to read, TPW_ERR_NOT_FOUND for a target naming no node, TPW_ERR_IN_CALLBACK from inside a callback, TPW_ERR_TIMEOUT when the query does not answer in time, or TPW_ERR_CONNECT_FAILED when it fails.
  */
 TPW_API int tpw_stream_get_target_video_formats(tpw_stream_h stream, const char* target,
                                                  tpw_video_format_info* out, size_t out_len,
@@ -272,7 +272,7 @@ TPW_API int tpw_stream_get_target_video_formats(tpw_stream_h stream, const char*
  *
  * @param stream The stream to configure, before its format is set.
  * @param enable false to opt out of autoconnect (manual wiring via tpw_stream_link()); true puts the stream back under the session manager, and leaves any target already set in place.
- * @return TPW_STREAM_OK, or TPW_STREAM_ERR_INVALID_ARG for a NULL `stream`, a format already set, or `enable` false while a target is set.
+ * @return TPW_OK, or TPW_ERR_INVALID_ARG for a NULL `stream`, a format already set, or `enable` false while a target is set.
  */
 TPW_API int tpw_stream_set_autoconnect(tpw_stream_h stream, bool enable);
 
@@ -297,7 +297,7 @@ TPW_API int tpw_stream_set_autoconnect(tpw_stream_h stream, bool enable);
  *
  * @param stream The running stream to wire, with autoconnect off.
  * @param target A node name or an object.serial.
- * @return TPW_STREAM_OK, or a tpw_stream_error: NOT_CONFIGURED before start, INVALID_ARG for a bad mode, target string or channel count or an already-linked stream, NOT_FOUND for a target naming no node, IN_CALLBACK from inside a callback, TIMEOUT when the stream's ports or a link do not appear in time, INVALID_FORMAT when a link fails to negotiate, NO_MEMORY when an allocation fails, CONNECT_FAILED when a link cannot be created.
+ * @return TPW_OK, or a tpw_error: NOT_CONFIGURED before start, INVALID_ARG for a bad mode, target string or channel count or an already-linked stream, NOT_FOUND for a target naming no node, IN_CALLBACK from inside a callback, TIMEOUT when the stream's ports or a link do not appear in time, INVALID_FORMAT when a link fails to negotiate, NO_MEMORY when an allocation fails, CONNECT_FAILED when a link cannot be created.
  */
 TPW_API int tpw_stream_link(tpw_stream_h stream, const char* target);
 
@@ -310,7 +310,7 @@ TPW_API int tpw_stream_link(tpw_stream_h stream, const char* target);
  * again.
  *
  * @param stream The stream to unlink.
- * @return TPW_STREAM_OK, TPW_STREAM_ERR_INVALID_ARG for a NULL `stream`, TPW_STREAM_ERR_NOT_CONFIGURED when the stream has no links, or TPW_STREAM_ERR_IN_CALLBACK from its data callback.
+ * @return TPW_OK, TPW_ERR_INVALID_ARG for a NULL `stream`, TPW_ERR_NOT_CONFIGURED when the stream has no links, or TPW_ERR_IN_CALLBACK from its data callback.
  */
 TPW_API int tpw_stream_unlink(tpw_stream_h stream);
 
@@ -360,7 +360,7 @@ typedef struct {
  * @brief Configures audio format before starting an audio stream.
  * @param stream The stream to configure; must not have started yet.
  * @param config The requested sample rate, channel count, and sample format.
- * @return TPW_STREAM_OK, TPW_STREAM_ERR_INVALID_ARG (NULL stream/config, or not an audio stream), TPW_STREAM_ERR_INVALID_FORMAT (unrecognized format or out-of-range field), TPW_STREAM_ERR_IN_CALLBACK (from inside a callback), or TPW_STREAM_ERR_CONNECT_FAILED.
+ * @return TPW_OK, TPW_ERR_INVALID_ARG (NULL stream/config, or not an audio stream), TPW_ERR_INVALID_FORMAT (unrecognized format or out-of-range field), TPW_ERR_IN_CALLBACK (from inside a callback), or TPW_ERR_CONNECT_FAILED.
  */
 TPW_API int tpw_stream_set_audio_config(tpw_stream_h stream, const tpw_audio_config* config);
 
@@ -368,7 +368,7 @@ TPW_API int tpw_stream_set_audio_config(tpw_stream_h stream, const tpw_audio_con
  * @brief Configures video format before starting a video stream.
  * @param stream The stream to configure; must not have started yet.
  * @param config The requested width, height, pixel format, and frame rate.
- * @return TPW_STREAM_OK, TPW_STREAM_ERR_INVALID_ARG (NULL stream/config, or not a video-capture stream), TPW_STREAM_ERR_INVALID_FORMAT (unrecognized pixel format or out-of-range dimension), TPW_STREAM_ERR_IN_CALLBACK (from inside a callback), or TPW_STREAM_ERR_CONNECT_FAILED.
+ * @return TPW_OK, TPW_ERR_INVALID_ARG (NULL stream/config, or not a video-capture stream), TPW_ERR_INVALID_FORMAT (unrecognized pixel format or out-of-range dimension), TPW_ERR_IN_CALLBACK (from inside a callback), or TPW_ERR_CONNECT_FAILED.
  */
 TPW_API int tpw_stream_set_video_config(tpw_stream_h stream, const tpw_video_config* config);
 
@@ -393,22 +393,22 @@ typedef struct {
  * planes are read via tpw_stream_get_dmabuf_planes(). Video capture only —
  * the same type/direction rejection as tpw_stream_set_video_config()
  * applies, so calling this on an audio or playback stream returns
- * TPW_STREAM_ERR_INVALID_ARG.
+ * TPW_ERR_INVALID_ARG.
  *
  * If the source cannot provide DMABUF, negotiation fails asynchronously:
  * the condition is logged and tpw_stream_error_cb (if set) is invoked
- * with TPW_STREAM_ERR_SOURCE_UNAVAILABLE, the same path used when a
+ * with TPW_ERR_SOURCE_UNAVAILABLE, the same path used when a
  * source is lost after connecting. The stream delivers no frames until
  * reconfigured without DMABUF.
  *
  * config->pixel_format == "MJPG" combined with DMABUF is rejected right
- * away with TPW_STREAM_ERR_INVALID_ARG instead: that combination never
+ * away with TPW_ERR_INVALID_ARG instead: that combination never
  * works, so it fails immediately rather than through the async path above.
  *
  * @param stream The stream to configure; must not have started yet.
  * @param config The requested width, height, pixel format, and frame rate.
  * @param opts   DMABUF options, or NULL for AUTO.
- * @return TPW_STREAM_OK, TPW_STREAM_ERR_INVALID_ARG (NULL stream/config, not a video-capture stream, or MJPG requested with DMABUF), TPW_STREAM_ERR_INVALID_FORMAT, TPW_STREAM_ERR_IN_CALLBACK (from inside a callback), or TPW_STREAM_ERR_CONNECT_FAILED.
+ * @return TPW_OK, TPW_ERR_INVALID_ARG (NULL stream/config, not a video-capture stream, or MJPG requested with DMABUF), TPW_ERR_INVALID_FORMAT, TPW_ERR_IN_CALLBACK (from inside a callback), or TPW_ERR_CONNECT_FAILED.
  */
 TPW_API int tpw_stream_set_video_config_ex(tpw_stream_h stream, const tpw_video_config* config,
                                             const tpw_stream_dmabuf_opts* opts);
@@ -432,7 +432,7 @@ TPW_API size_t tpw_stream_get_dmabuf_planes(tpw_stream_h stream, tpw_dmabuf_plan
 /**
  * @brief Starts data delivery. Requires a format to already be set.
  * @param stream The stream to start.
- * @return TPW_STREAM_OK, TPW_STREAM_ERR_INVALID_ARG (NULL stream), TPW_STREAM_ERR_IN_CALLBACK (from its data callback), TPW_STREAM_ERR_NOT_CONFIGURED (no format set), or TPW_STREAM_ERR_CONNECT_FAILED.
+ * @return TPW_OK, TPW_ERR_INVALID_ARG (NULL stream), TPW_ERR_IN_CALLBACK (from its data callback), TPW_ERR_NOT_CONFIGURED (no format set), or TPW_ERR_CONNECT_FAILED.
  */
 TPW_API int tpw_stream_start(tpw_stream_h stream);
 
@@ -448,7 +448,7 @@ TPW_API int tpw_stream_start(tpw_stream_h stream);
  *
  * @param stream The stream to stop.
  * @param drain  true to wait for what is already queued to finish first.
- * @return TPW_STREAM_OK, TPW_STREAM_ERR_INVALID_ARG for a NULL `stream`, or TPW_STREAM_ERR_IN_CALLBACK for a stop refused inside a callback.
+ * @return TPW_OK, TPW_ERR_INVALID_ARG for a NULL `stream`, or TPW_ERR_IN_CALLBACK for a stop refused inside a callback.
  */
 TPW_API int tpw_stream_stop(tpw_stream_h stream, bool drain);
 

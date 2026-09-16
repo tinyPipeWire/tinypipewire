@@ -89,7 +89,7 @@ int main(void)
         return 1;
     }
 
-    if (tpw_filter_start(filter) != TPW_STREAM_OK) {
+    if (tpw_filter_start(filter) != TPW_OK) {
         fprintf(stderr, "failed to start filter\n");
         tpw_filter_destroy(filter);
         return 1;

@@ -8,14 +8,14 @@ int tpw_stream_set_video_config_ex(tpw_stream_h handle, const tpw_video_config* 
 {
     struct tpw_stream* stream = (struct tpw_stream*)handle;
     if (!stream || stream->type != TPW_STREAM_TYPE_VIDEO || !config || !config->pixel_format)
-        return TPW_STREAM_ERR_INVALID_ARG;
+        return TPW_ERR_INVALID_ARG;
     if (tpw_stream_refuse_in_callback(stream, true, __func__))
-        return TPW_STREAM_ERR_IN_CALLBACK;
+        return TPW_ERR_IN_CALLBACK;
     /* Playback is audio-only, so a video format has nothing to connect to. */
     if (stream->direction != TPW_STREAM_DIRECTION_CAPTURE)
-        return TPW_STREAM_ERR_INVALID_ARG;
+        return TPW_ERR_INVALID_ARG;
     if (config->width <= 0 || config->height <= 0 || config->fps < 0)
-        return TPW_STREAM_ERR_INVALID_FORMAT;
+        return TPW_ERR_INVALID_FORMAT;
 
     bool use_dmabuf = opts && opts->memory == TPW_PORT_MEMORY_DMABUF;
     bool is_mjpg = tpw_spa_pixel_format_is_mjpg(config->pixel_format);
@@ -24,13 +24,13 @@ int tpw_stream_set_video_config_ex(tpw_stream_h handle, const tpw_video_config* 
     /* Encoded frames (MJPEG, H.264) are never handed out as DMABUF; nothing
      * here would ever negotiate it, so refuse the request. */
     if (is_encoded && use_dmabuf)
-        return TPW_STREAM_ERR_INVALID_ARG;
+        return TPW_ERR_INVALID_ARG;
 
     enum spa_video_format fmt = SPA_VIDEO_FORMAT_ENCODED;
     if (!is_encoded) {
         fmt = tpw_spa_lookup_pixel_format(config->pixel_format);
         if (fmt == SPA_VIDEO_FORMAT_UNKNOWN)
-            return TPW_STREAM_ERR_INVALID_FORMAT;
+            return TPW_ERR_INVALID_FORMAT;
     }
 
     uint8_t buffer[1024];
@@ -60,7 +60,7 @@ int tpw_stream_set_video_config_ex(tpw_stream_h handle, const tpw_video_config* 
     stream->format.video.format = fmt;
     stream->format_set = true;
     stream->state = TPW_STREAM_STATE_FORMAT_SET;
-    return TPW_STREAM_OK;
+    return TPW_OK;
 }
 
 int tpw_stream_set_video_config(tpw_stream_h handle, const tpw_video_config* config)

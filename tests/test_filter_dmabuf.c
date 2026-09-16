@@ -119,9 +119,9 @@ int main(void)
     /* Configuration setters reject bad handles and directions. */
     tpw_filter_port_h out = tpw_filter_add_video_port(filter, TPW_FILTER_PORT_OUTPUT, &cfg);
     TPW_ASSERT(out != NULL);
-    TPW_ASSERT_EQ(tpw_filter_port_set_hold(out, true), TPW_STREAM_ERR_INVALID_ARG);   /* output port */
-    TPW_ASSERT_EQ(tpw_filter_port_set_hold(NULL, true), TPW_STREAM_ERR_INVALID_ARG);
-    TPW_ASSERT_EQ(tpw_filter_set_period_hint(NULL, 1000000), TPW_STREAM_ERR_INVALID_ARG);
+    TPW_ASSERT_EQ(tpw_filter_port_set_hold(out, true), TPW_ERR_INVALID_ARG);   /* output port */
+    TPW_ASSERT_EQ(tpw_filter_port_set_hold(NULL, true), TPW_ERR_INVALID_ARG);
+    TPW_ASSERT_EQ(tpw_filter_set_period_hint(NULL, 1000000), TPW_ERR_INVALID_ARG);
 
     tpw_filter_destroy(filter);
     return 0;

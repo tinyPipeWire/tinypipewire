@@ -138,13 +138,13 @@ int tpw_filter_get_target_video_formats(tpw_filter_h handle, const char* target,
 {
     struct tpw_filter* filter = (struct tpw_filter*)handle;
     if (!found)
-        return TPW_STREAM_ERR_INVALID_ARG;
+        return TPW_ERR_INVALID_ARG;
 
     *found = 0;
     if (!filter || !target)
-        return TPW_STREAM_ERR_INVALID_ARG;
+        return TPW_ERR_INVALID_ARG;
     if (tpw_filter_refuse_in_callback(filter, true, __func__))
-        return TPW_STREAM_ERR_IN_CALLBACK;
+        return TPW_ERR_IN_CALLBACK;
     int bound = tpw_pw_registry_bind(&filter->registry, &filter->conn);
     if (bound < 0)
         return tpw_pw_error_from_sync(bound);
@@ -154,7 +154,7 @@ int tpw_filter_get_target_video_formats(tpw_filter_h handle, const char* target,
     uint32_t node_id = tpw_resolve_target_node(filter, target, &port_name);
     if (!node_id) {
         tpw_log_warning("filter: no node named '%s' to read formats from", target);
-        return TPW_STREAM_ERR_NOT_FOUND;
+        return TPW_ERR_NOT_FOUND;
     }
 
     return tpw_pw_enum_video_formats(&filter->conn, &filter->registry, node_id, out, out_len, found);
@@ -197,7 +197,7 @@ void tpw_filter_link_on_info(void* data, const struct pw_link_info* info)
         if (port->link_wait) {
             struct tpw_link_wait* wait = port->link_wait;
             wait->done = true;
-            wait->result = TPW_STREAM_OK;
+            wait->result = TPW_OK;
             pw_thread_loop_signal(filter->conn.loop, false);
         }
         return;
@@ -210,7 +210,7 @@ void tpw_filter_link_on_info(void* data, const struct pw_link_info* info)
         /* Still negotiating: fail the pending tpw_filter_port_link() call. */
         struct tpw_link_wait* wait = port->link_wait;
         wait->done = true;
-        wait->result = TPW_STREAM_ERR_INVALID_FORMAT;
+        wait->result = TPW_ERR_INVALID_FORMAT;
         pw_thread_loop_signal(filter->conn.loop, false);
         return;
     }
@@ -228,7 +228,7 @@ void tpw_filter_link_on_info(void* data, const struct pw_link_info* info)
     tpw_log_warning("filter '%s': a linked source became unavailable",
                     filter->name ? filter->name : "tpw-filter");
     if (filter->error_cb)
-        filter->error_cb((tpw_filter_h)filter, (tpw_filter_port_h)port, TPW_STREAM_ERR_SOURCE_UNAVAILABLE,
+        filter->error_cb((tpw_filter_h)filter, (tpw_filter_port_h)port, TPW_ERR_SOURCE_UNAVAILABLE,
                           filter->user_data);
 }
 
@@ -256,17 +256,17 @@ int tpw_filter_port_link(tpw_filter_port_h port_handle, const char* target)
 {
     struct tpw_filter_port* port = (struct tpw_filter_port*)port_handle;
     if (!port || !target || !*target)
-        return TPW_STREAM_ERR_INVALID_ARG;
+        return TPW_ERR_INVALID_ARG;
     if (port->direction != TPW_FILTER_PORT_INPUT)
-        return TPW_STREAM_ERR_INVALID_ARG;
+        return TPW_ERR_INVALID_ARG;
     if (tpw_filter_refuse_in_callback(port->filter, true, __func__))
-        return TPW_STREAM_ERR_IN_CALLBACK;
+        return TPW_ERR_IN_CALLBACK;
     if (port->link_proxy)
-        return TPW_STREAM_ERR_INVALID_ARG;
+        return TPW_ERR_INVALID_ARG;
 
     struct tpw_filter* filter = port->filter;
     if (!filter || filter->state != TPW_FILTER_STATE_RUNNING)
-        return TPW_STREAM_ERR_NOT_CONFIGURED;
+        return TPW_ERR_NOT_CONFIGURED;
 
     int bound = tpw_pw_registry_bind(&filter->registry, &filter->conn);
     if (bound < 0)
@@ -277,14 +277,14 @@ int tpw_filter_port_link(tpw_filter_port_h port_handle, const char* target)
     if (!target_node_id) {
         tpw_log_warning("filter '%s': no pipewire node matches target '%s'",
                         filter->name ? filter->name : "tpw-filter", target);
-        return TPW_STREAM_ERR_NOT_FOUND;
+        return TPW_ERR_NOT_FOUND;
     }
 
     uint32_t own_port_id = tpw_resolve_own_port_id(port);
     if (!own_port_id) {
         tpw_log_warning("filter '%s': could not find this port in the pipewire registry",
                         filter->name ? filter->name : "tpw-filter");
-        return TPW_STREAM_ERR_CONNECT_FAILED;
+        return TPW_ERR_CONNECT_FAILED;
     }
 
     char in_node[16], in_port[16], out_node[16], out_port[16];
@@ -296,7 +296,7 @@ int tpw_filter_port_link(tpw_filter_port_h port_handle, const char* target)
                                                      PW_KEY_LINK_INPUT_PORT, in_port,
                                                      PW_KEY_LINK_OUTPUT_NODE, out_node, NULL);
     if (!props)
-        return TPW_STREAM_ERR_NO_MEMORY;
+        return TPW_ERR_NO_MEMORY;
     /* Only unset when the target's ports have not shown up yet; then the
      * core's link factory picks one on the target node. */
     if (target_port_id) {
@@ -304,7 +304,7 @@ int tpw_filter_port_link(tpw_filter_port_h port_handle, const char* target)
         pw_properties_set(props, PW_KEY_LINK_OUTPUT_PORT, out_port);
     }
 
-    struct tpw_link_wait wait = { .port = port, .done = false, .result = TPW_STREAM_ERR_CONNECT_FAILED };
+    struct tpw_link_wait wait = { .port = port, .done = false, .result = TPW_ERR_CONNECT_FAILED };
 
     pw_thread_loop_lock(filter->conn.loop);
 
@@ -315,7 +315,7 @@ int tpw_filter_port_link(tpw_filter_port_h port_handle, const char* target)
         pw_properties_free(props);
         tpw_log_error("filter '%s': failed to create a link to '%s'",
                       filter->name ? filter->name : "tpw-filter", target);
-        return TPW_STREAM_ERR_CONNECT_FAILED;
+        return TPW_ERR_CONNECT_FAILED;
     }
 
     port->link_proxy = proxy;
@@ -328,20 +328,20 @@ int tpw_filter_port_link(tpw_filter_port_h port_handle, const char* target)
     pw_thread_loop_get_time(filter->conn.loop, &deadline, TPW_LINK_TIMEOUT_NSEC);
     while (!wait.done) {
         if (pw_thread_loop_timed_wait_full(filter->conn.loop, &deadline) < 0) {
-            wait.result = TPW_STREAM_ERR_TIMEOUT;
+            wait.result = TPW_ERR_TIMEOUT;
             break;
         }
     }
     port->link_wait = NULL;
 
-    int result = wait.done ? wait.result : TPW_STREAM_ERR_TIMEOUT;
-    if (result != TPW_STREAM_OK)
+    int result = wait.done ? wait.result : TPW_ERR_TIMEOUT;
+    if (result != TPW_OK)
         tpw_filter_port_link_release(port);
 
     pw_thread_loop_unlock(filter->conn.loop);
     pw_properties_free(props);
 
-    if (result != TPW_STREAM_OK)
+    if (result != TPW_OK)
         tpw_log_warning("filter '%s': link to '%s' did not negotiate (result=%d)",
                         filter->name ? filter->name : "tpw-filter", target, result);
     return result;
@@ -351,17 +351,17 @@ int tpw_filter_port_unlink(tpw_filter_port_h port_handle)
 {
     struct tpw_filter_port* port = (struct tpw_filter_port*)port_handle;
     if (!port || port->direction != TPW_FILTER_PORT_INPUT)
-        return TPW_STREAM_ERR_INVALID_ARG;
+        return TPW_ERR_INVALID_ARG;
     if (tpw_filter_refuse_in_callback(port->filter, false, __func__))
-        return TPW_STREAM_ERR_IN_CALLBACK;
+        return TPW_ERR_IN_CALLBACK;
     if (!port->link_proxy)
-        return TPW_STREAM_ERR_NOT_CONFIGURED;
+        return TPW_ERR_NOT_CONFIGURED;
 
     struct tpw_filter* filter = port->filter;
     pw_thread_loop_lock(filter->conn.loop);
     tpw_filter_port_link_release(port);
     pw_thread_loop_unlock(filter->conn.loop);
-    return TPW_STREAM_OK;
+    return TPW_OK;
 }
 
 void tpw_filter_release_all_links(struct tpw_filter* filter)

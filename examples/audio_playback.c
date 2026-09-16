@@ -68,20 +68,20 @@ int main(int argc, char** argv)
 
     tpw_stream_set_error_cb(stream, on_error);
 
-    if (argc > 1 && tpw_stream_set_target(stream, argv[1]) != TPW_STREAM_OK) {
+    if (argc > 1 && tpw_stream_set_target(stream, argv[1]) != TPW_OK) {
         fprintf(stderr, "failed to select output device '%s'\n", argv[1]);
         tpw_stream_destroy(stream);
         return 1;
     }
 
     tpw_audio_config cfg = { .sample_rate = SAMPLE_RATE, .channels = CHANNELS, .format = "S16" };
-    if (tpw_stream_set_audio_config(stream, &cfg) != TPW_STREAM_OK) {
+    if (tpw_stream_set_audio_config(stream, &cfg) != TPW_OK) {
         fprintf(stderr, "failed to set audio format\n");
         tpw_stream_destroy(stream);
         return 1;
     }
 
-    if (tpw_stream_start(stream) != TPW_STREAM_OK) {
+    if (tpw_stream_start(stream) != TPW_OK) {
         fprintf(stderr, "failed to start playback\n");
         tpw_stream_destroy(stream);
         return 1;

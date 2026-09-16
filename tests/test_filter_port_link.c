@@ -47,19 +47,19 @@ static void test_invalid_args(void)
     TPW_ASSERT(in != NULL && out != NULL);
 
     /* NULL handles and empty targets are rejected before anything else. */
-    TPW_ASSERT_EQ(tpw_filter_port_link(NULL, ABSENT_NODE), TPW_STREAM_ERR_INVALID_ARG);
-    TPW_ASSERT_EQ(tpw_filter_port_link(in, NULL), TPW_STREAM_ERR_INVALID_ARG);
-    TPW_ASSERT_EQ(tpw_filter_port_link(in, ""), TPW_STREAM_ERR_INVALID_ARG);
-    TPW_ASSERT_EQ(tpw_filter_port_unlink(NULL), TPW_STREAM_ERR_INVALID_ARG);
+    TPW_ASSERT_EQ(tpw_filter_port_link(NULL, ABSENT_NODE), TPW_ERR_INVALID_ARG);
+    TPW_ASSERT_EQ(tpw_filter_port_link(in, NULL), TPW_ERR_INVALID_ARG);
+    TPW_ASSERT_EQ(tpw_filter_port_link(in, ""), TPW_ERR_INVALID_ARG);
+    TPW_ASSERT_EQ(tpw_filter_port_unlink(NULL), TPW_ERR_INVALID_ARG);
 
     /* Output ports are out of scope for this feature, in both directions
      * of the API, and are rejected before the filter's state matters. */
-    TPW_ASSERT_EQ(tpw_filter_port_link(out, ABSENT_NODE), TPW_STREAM_ERR_INVALID_ARG);
-    TPW_ASSERT_EQ(tpw_filter_port_unlink(out), TPW_STREAM_ERR_INVALID_ARG);
+    TPW_ASSERT_EQ(tpw_filter_port_link(out, ABSENT_NODE), TPW_ERR_INVALID_ARG);
+    TPW_ASSERT_EQ(tpw_filter_port_unlink(out), TPW_ERR_INVALID_ARG);
 
     /* Linking needs a live graph, so it is the one port call that must come
      * after start() rather than before it. */
-    TPW_ASSERT_EQ(tpw_filter_port_link(in, ABSENT_NODE), TPW_STREAM_ERR_NOT_CONFIGURED);
+    TPW_ASSERT_EQ(tpw_filter_port_link(in, ABSENT_NODE), TPW_ERR_NOT_CONFIGURED);
 
     tpw_filter_destroy(handle);
 }
@@ -72,17 +72,17 @@ static void test_unresolvable_target(void)
 
     tpw_filter_port_h in = tpw_filter_add_audio_port(handle, TPW_FILTER_PORT_INPUT, &g_audio_cfg);
     TPW_ASSERT(in != NULL);
-    TPW_ASSERT_EQ(tpw_filter_start(handle), TPW_STREAM_OK);
+    TPW_ASSERT_EQ(tpw_filter_start(handle), TPW_OK);
 
     /* Neither a bare node name nor its "node:port" form resolves. */
-    TPW_ASSERT_EQ(tpw_filter_port_link(in, ABSENT_NODE), TPW_STREAM_ERR_NOT_FOUND);
-    TPW_ASSERT_EQ(tpw_filter_port_link(in, ABSENT_NODE ":capture_FL"), TPW_STREAM_ERR_NOT_FOUND);
+    TPW_ASSERT_EQ(tpw_filter_port_link(in, ABSENT_NODE), TPW_ERR_NOT_FOUND);
+    TPW_ASSERT_EQ(tpw_filter_port_link(in, ABSENT_NODE ":capture_FL"), TPW_ERR_NOT_FOUND);
     /* An all-digit target is read as an object.serial; this one is nobody's. */
-    TPW_ASSERT_EQ(tpw_filter_port_link(in, "4294967290"), TPW_STREAM_ERR_NOT_FOUND);
+    TPW_ASSERT_EQ(tpw_filter_port_link(in, "4294967290"), TPW_ERR_NOT_FOUND);
 
     /* A failed link leaves no partial state behind, so there is still
      * nothing to unlink. */
-    TPW_ASSERT_EQ(tpw_filter_port_unlink(in), TPW_STREAM_ERR_NOT_CONFIGURED);
+    TPW_ASSERT_EQ(tpw_filter_port_unlink(in), TPW_ERR_NOT_CONFIGURED);
 
     tpw_filter_stop(handle, false);
     tpw_filter_destroy(handle);
@@ -99,15 +99,15 @@ static void test_unlink_states(void)
     TPW_ASSERT(in != NULL);
 
     /* Never linked, before or after start. */
-    TPW_ASSERT_EQ(tpw_filter_port_unlink(in), TPW_STREAM_ERR_NOT_CONFIGURED);
-    TPW_ASSERT_EQ(tpw_filter_start(handle), TPW_STREAM_OK);
-    TPW_ASSERT_EQ(tpw_filter_port_unlink(in), TPW_STREAM_ERR_NOT_CONFIGURED);
+    TPW_ASSERT_EQ(tpw_filter_port_unlink(in), TPW_ERR_NOT_CONFIGURED);
+    TPW_ASSERT_EQ(tpw_filter_start(handle), TPW_OK);
+    TPW_ASSERT_EQ(tpw_filter_port_unlink(in), TPW_ERR_NOT_CONFIGURED);
 
     /* A restart is clean, and linking is still rejected while stopped. */
-    TPW_ASSERT_EQ(tpw_filter_stop(handle, false), TPW_STREAM_OK);
-    TPW_ASSERT_EQ(tpw_filter_port_link(in, ABSENT_NODE), TPW_STREAM_ERR_NOT_CONFIGURED);
-    TPW_ASSERT_EQ(tpw_filter_start(handle), TPW_STREAM_OK);
-    TPW_ASSERT_EQ(tpw_filter_port_unlink(in), TPW_STREAM_ERR_NOT_CONFIGURED);
+    TPW_ASSERT_EQ(tpw_filter_stop(handle, false), TPW_OK);
+    TPW_ASSERT_EQ(tpw_filter_port_link(in, ABSENT_NODE), TPW_ERR_NOT_CONFIGURED);
+    TPW_ASSERT_EQ(tpw_filter_start(handle), TPW_OK);
+    TPW_ASSERT_EQ(tpw_filter_port_unlink(in), TPW_ERR_NOT_CONFIGURED);
 
     tpw_filter_stop(handle, false);
     tpw_filter_destroy(handle);
@@ -120,12 +120,12 @@ static void test_source_unavailable_notification(void)
 {
     tpw_filter_h handle = tpw_filter_create("tpw-test-link-notify", noop_process_cb, NULL);
     TPW_ASSERT(handle != NULL);
-    TPW_ASSERT_EQ(tpw_filter_set_error_cb(handle, on_error), TPW_STREAM_OK);
+    TPW_ASSERT_EQ(tpw_filter_set_error_cb(handle, on_error), TPW_OK);
 
     tpw_filter_port_h port_a = tpw_filter_add_audio_port(handle, TPW_FILTER_PORT_INPUT, &g_audio_cfg);
     tpw_filter_port_h port_b = tpw_filter_add_audio_port(handle, TPW_FILTER_PORT_INPUT, &g_audio_cfg);
     TPW_ASSERT(port_a != NULL && port_b != NULL);
-    TPW_ASSERT_EQ(tpw_filter_start(handle), TPW_STREAM_OK);
+    TPW_ASSERT_EQ(tpw_filter_start(handle), TPW_OK);
 
     struct tpw_filter_port* a = (struct tpw_filter_port*)port_a;
     struct tpw_filter_port* b = (struct tpw_filter_port*)port_b;
@@ -146,13 +146,13 @@ static void test_source_unavailable_notification(void)
 
     TPW_ASSERT_EQ(g_error_calls, 1);
     TPW_ASSERT(g_last_port == port_a);
-    TPW_ASSERT_EQ(g_last_error_code, TPW_STREAM_ERR_SOURCE_UNAVAILABLE);
+    TPW_ASSERT_EQ(g_last_error_code, TPW_ERR_SOURCE_UNAVAILABLE);
 
     /* The port is no longer considered linked, so a repeat report is silent
      * and there is nothing left to unlink. */
     tpw_filter_link_on_info(a, &gone);
     TPW_ASSERT_EQ(g_error_calls, 1);
-    TPW_ASSERT_EQ(tpw_filter_port_unlink(port_a), TPW_STREAM_ERR_NOT_CONFIGURED);
+    TPW_ASSERT_EQ(tpw_filter_port_unlink(port_a), TPW_ERR_NOT_CONFIGURED);
 
     /* An info event that carries no state change is ignored entirely. */
     tpw_filter_link_on_info(a, &up);

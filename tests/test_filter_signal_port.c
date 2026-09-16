@@ -29,12 +29,12 @@ int main(void)
                                                              &(tpw_audio_config){ .sample_rate = 48000, .channels = 2 });
     TPW_ASSERT(audio_in != NULL);
 
-    TPW_ASSERT_EQ(tpw_filter_start(filter), TPW_STREAM_OK);
+    TPW_ASSERT_EQ(tpw_filter_start(filter), TPW_OK);
 
     /* Pushing data into a signal input port works through the same
      * generic staging mechanism as any other port kind. */
     float samples[4] = { 0.0f, 0.25f, 0.5f, 0.75f };
-    TPW_ASSERT_EQ(tpw_filter_push_port_data(filter, sig_in, samples, sizeof(samples), -1), TPW_STREAM_OK);
+    TPW_ASSERT_EQ(tpw_filter_push_port_data(filter, sig_in, samples, sizeof(samples), -1), TPW_OK);
 
     sleep(1);
 
@@ -50,7 +50,7 @@ int main(void)
     TPW_ASSERT(started != NULL);
     TPW_ASSERT(tpw_filter_add_audio_port(started, TPW_FILTER_PORT_INPUT,
                                           &(tpw_audio_config){ .sample_rate = 48000, .channels = 2 }) != NULL);
-    TPW_ASSERT_EQ(tpw_filter_start(started), TPW_STREAM_OK);
+    TPW_ASSERT_EQ(tpw_filter_start(started), TPW_OK);
     TPW_ASSERT(tpw_filter_add_signal_port(started, TPW_FILTER_PORT_OUTPUT) == NULL);
     tpw_filter_stop(started, false);
     tpw_filter_destroy(started);

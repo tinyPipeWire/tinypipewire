@@ -82,8 +82,8 @@ static void check_multiplane_format(const char* camera, const char* pixel_format
     tpw_stream_set_autoconnect(s, false);
     tpw_video_config cfg = { .width = 640, .height = 480, .pixel_format = pixel_format, .fps = 30 };
     tpw_stream_dmabuf_opts opts = { .memory = TPW_PORT_MEMORY_DMABUF };
-    if (tpw_stream_set_video_config_ex(s, &cfg, &opts) != TPW_STREAM_OK || tpw_stream_start(s) != TPW_STREAM_OK ||
-        tpw_stream_link(s, camera) != TPW_STREAM_OK) {
+    if (tpw_stream_set_video_config_ex(s, &cfg, &opts) != TPW_OK || tpw_stream_start(s) != TPW_OK ||
+        tpw_stream_link(s, camera) != TPW_OK) {
         printf("%s: camera rejected the request, skipping\n", pixel_format);
         tpw_stream_destroy(s);
         return;
@@ -119,18 +119,18 @@ int main(void)
         return TEST_SKIP;
     }
 
-    TPW_ASSERT_EQ(tpw_stream_set_error_cb(stream, on_error), TPW_STREAM_OK);
-    TPW_ASSERT_EQ(tpw_stream_set_autoconnect(stream, false), TPW_STREAM_OK);
+    TPW_ASSERT_EQ(tpw_stream_set_error_cb(stream, on_error), TPW_OK);
+    TPW_ASSERT_EQ(tpw_stream_set_autoconnect(stream, false), TPW_OK);
 
     tpw_video_config cfg = { .width = 640, .height = 480, .pixel_format = "YUYV", .fps = 30 };
     tpw_stream_dmabuf_opts opts = { .memory = TPW_PORT_MEMORY_DMABUF };
-    TPW_ASSERT_EQ(tpw_stream_set_video_config_ex(stream, &cfg, &opts), TPW_STREAM_OK);
-    TPW_ASSERT_EQ(tpw_stream_start(stream), TPW_STREAM_OK);
-    TPW_ASSERT_EQ(tpw_stream_link(stream, camera), TPW_STREAM_OK);
+    TPW_ASSERT_EQ(tpw_stream_set_video_config_ex(stream, &cfg, &opts), TPW_OK);
+    TPW_ASSERT_EQ(tpw_stream_start(stream), TPW_OK);
+    TPW_ASSERT_EQ(tpw_stream_link(stream, camera), TPW_OK);
 
     usleep(RUN_USEC);
 
-    TPW_ASSERT_EQ(tpw_stream_stop(stream, false), TPW_STREAM_OK);
+    TPW_ASSERT_EQ(tpw_stream_stop(stream, false), TPW_OK);
     tpw_stream_destroy(stream);
 
     printf("frames=%u dmabuf_frames=%u last_fd=%d pts_seen=%u\n", c.frames, c.dmabuf_frames, c.last_fd,

@@ -35,7 +35,7 @@ static void process_cb(tpw_filter_h filter, tpw_filter_port_buffer* buffers, siz
                               .size = sizeof(note_on) };
         g_output_push_calls++;
         int res = tpw_filter_port_push_event(buffers[1].port, &out_ev);
-        if (res != TPW_STREAM_OK && res != TPW_STREAM_ERR_INVALID_ARG)
+        if (res != TPW_OK && res != TPW_ERR_INVALID_ARG)
             g_output_push_unexpected++;
     }
 
@@ -49,7 +49,7 @@ static void process_cb(tpw_filter_h filter, tpw_filter_port_buffer* buffers, siz
     g_last_event_count = count;
 
     tpw_event ev;
-    if (tpw_filter_port_get_event(in, 0, &ev) != TPW_STREAM_OK)
+    if (tpw_filter_port_get_event(in, 0, &ev) != TPW_OK)
         return;
     g_last_offset = ev.offset;
     g_last_kind = ev.kind;
@@ -148,33 +148,33 @@ int main(void)
      * event port (get_event() is input-only), and an out-of-range
      * index — none of this needs a real cycle to have run yet. */
     tpw_event scratch_ev;
-    TPW_ASSERT_EQ(tpw_filter_port_get_event(audio_in, 0, &scratch_ev), TPW_STREAM_ERR_INVALID_ARG);
-    TPW_ASSERT_EQ(tpw_filter_port_get_event(ev_out, 0, &scratch_ev), TPW_STREAM_ERR_INVALID_ARG);
-    TPW_ASSERT_EQ(tpw_filter_port_get_event(ev_in, 0, &scratch_ev), TPW_STREAM_ERR_INVALID_ARG);
+    TPW_ASSERT_EQ(tpw_filter_port_get_event(audio_in, 0, &scratch_ev), TPW_ERR_INVALID_ARG);
+    TPW_ASSERT_EQ(tpw_filter_port_get_event(ev_out, 0, &scratch_ev), TPW_ERR_INVALID_ARG);
+    TPW_ASSERT_EQ(tpw_filter_port_get_event(ev_in, 0, &scratch_ev), TPW_ERR_INVALID_ARG);
     TPW_ASSERT_EQ(tpw_filter_port_get_event_count(audio_in), (size_t)0);
     TPW_ASSERT_EQ(tpw_filter_port_get_event_count(ev_out), (size_t)0);
 
     uint8_t junk[4] = { 0 };
-    TPW_ASSERT_EQ(tpw_filter_push_port_data(filter, ev_in, junk, sizeof(junk), -1), TPW_STREAM_ERR_INVALID_ARG);
+    TPW_ASSERT_EQ(tpw_filter_push_port_data(filter, ev_in, junk, sizeof(junk), -1), TPW_ERR_INVALID_ARG);
 
     tpw_event bad_key_on_midi = { .offset = 0, .kind = TPW_EVENT_MIDI, .key = "volume", .data = NULL, .size = 0 };
-    TPW_ASSERT_EQ(tpw_filter_port_push_event(ev_in, &bad_key_on_midi), TPW_STREAM_ERR_INVALID_ARG);
+    TPW_ASSERT_EQ(tpw_filter_port_push_event(ev_in, &bad_key_on_midi), TPW_ERR_INVALID_ARG);
 
     int one = 1;
     tpw_event unrecognized_key = { .offset = 0, .kind = TPW_EVENT_PROPERTY, .key = "not-a-real-property",
                                     .data = &one, .size = sizeof(one) };
-    TPW_ASSERT_EQ(tpw_filter_port_push_event(ev_in, &unrecognized_key), TPW_STREAM_ERR_INVALID_ARG);
+    TPW_ASSERT_EQ(tpw_filter_port_push_event(ev_in, &unrecognized_key), TPW_ERR_INVALID_ARG);
 
     tpw_event unknown_kind = { .offset = 0, .kind = TPW_EVENT_UNKNOWN, .key = NULL, .data = NULL, .size = 0 };
-    TPW_ASSERT_EQ(tpw_filter_port_push_event(ev_in, &unknown_kind), TPW_STREAM_ERR_INVALID_ARG);
+    TPW_ASSERT_EQ(tpw_filter_port_push_event(ev_in, &unknown_kind), TPW_ERR_INVALID_ARG);
 
-    TPW_ASSERT_EQ(tpw_filter_start(filter), TPW_STREAM_OK);
+    TPW_ASSERT_EQ(tpw_filter_start(filter), TPW_OK);
     sleep(1);
     TPW_ASSERT_EQ(g_last_event_count, (size_t)0);
 
     uint8_t midi2[3] = { 0x80, 0x3c, 0x00 };
     tpw_event push_ev = { .offset = 5, .kind = TPW_EVENT_MIDI, .key = NULL, .data = midi2, .size = sizeof(midi2) };
-    TPW_ASSERT_EQ(tpw_filter_port_push_event(ev_in, &push_ev), TPW_STREAM_OK);
+    TPW_ASSERT_EQ(tpw_filter_port_push_event(ev_in, &push_ev), TPW_OK);
     sleep(1);
 
     TPW_ASSERT_EQ(g_last_event_count, (size_t)1);
@@ -198,7 +198,7 @@ int main(void)
     TPW_ASSERT(started != NULL);
     TPW_ASSERT(tpw_filter_add_audio_port(started, TPW_FILTER_PORT_INPUT,
                                           &(tpw_audio_config){ .sample_rate = 48000, .channels = 2 }) != NULL);
-    TPW_ASSERT_EQ(tpw_filter_start(started), TPW_STREAM_OK);
+    TPW_ASSERT_EQ(tpw_filter_start(started), TPW_OK);
     TPW_ASSERT(tpw_filter_add_event_port(started, TPW_FILTER_PORT_OUTPUT) == NULL);
     tpw_filter_stop(started, false);
     tpw_filter_destroy(started);

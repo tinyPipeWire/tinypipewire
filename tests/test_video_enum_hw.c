@@ -49,7 +49,7 @@ int main(void)
     tpw_video_format_info fmts[MAX_FORMATS];
     size_t n = 0;
     int res = tpw_stream_get_target_video_formats(s, node, fmts, MAX_FORMATS, &n);
-    if (res != TPW_STREAM_OK) {
+    if (res != TPW_OK) {
         printf("'%s' could not be read (error %d; in use elsewhere?); skipping\n", node, res);
         tpw_stream_destroy(s);
         return TEST_SKIP;
@@ -97,8 +97,8 @@ int main(void)
         .pixel_format = pick->pixel_format,
         .fps = pick->n_fps > 0 ? pick->fps[0] : 0,
     };
-    TPW_ASSERT_EQ(tpw_stream_set_target(s, node), TPW_STREAM_OK);
-    TPW_ASSERT_EQ(tpw_stream_set_video_config(s, &cfg), TPW_STREAM_OK);
+    TPW_ASSERT_EQ(tpw_stream_set_target(s, node), TPW_OK);
+    TPW_ASSERT_EQ(tpw_stream_set_video_config(s, &cfg), TPW_OK);
 
     tpw_stream_destroy(s);
 
@@ -106,21 +106,21 @@ int main(void)
      * and no explicit target passed, must reach the same device. */
     tpw_stream_h s2 = tpw_stream_create(TPW_STREAM_TYPE_VIDEO, ignore_data_cb, NULL);
     TPW_ASSERT(s2 != NULL);
-    TPW_ASSERT_EQ(tpw_stream_set_target(s2, node), TPW_STREAM_OK);
+    TPW_ASSERT_EQ(tpw_stream_set_target(s2, node), TPW_OK);
     size_t again = 0;
     TPW_ASSERT_EQ(tpw_stream_get_target_video_formats(s2, NULL, fmts, MAX_FORMATS, &again),
-                  TPW_STREAM_OK);
+                  TPW_OK);
     TPW_ASSERT_EQ(again, n);
 
     /* A too-small buffer still reports the true count, so a caller can size
      * an array and ask again. */
     tpw_video_format_info one;
-    TPW_ASSERT_EQ(tpw_stream_get_target_video_formats(s2, NULL, &one, 1, &again), TPW_STREAM_OK);
+    TPW_ASSERT_EQ(tpw_stream_get_target_video_formats(s2, NULL, &one, 1, &again), TPW_OK);
     TPW_ASSERT_EQ(again, n);
     TPW_ASSERT(one.width > 0);
 
     /* Counting with no buffer at all is allowed and must agree. */
-    TPW_ASSERT_EQ(tpw_stream_get_target_video_formats(s2, NULL, NULL, 0, &again), TPW_STREAM_OK);
+    TPW_ASSERT_EQ(tpw_stream_get_target_video_formats(s2, NULL, NULL, 0, &again), TPW_OK);
     TPW_ASSERT_EQ(again, n);
 
     tpw_stream_destroy(s2);

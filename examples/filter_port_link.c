@@ -21,19 +21,19 @@ static void on_sigint(int sig)
 static const char* link_result_text(int res)
 {
     switch (res) {
-    case TPW_STREAM_OK:
+    case TPW_OK:
         return "linked";
-    case TPW_STREAM_ERR_INVALID_ARG:
+    case TPW_ERR_INVALID_ARG:
         return "the port cannot be linked (an output port, or already linked?)";
-    case TPW_STREAM_ERR_NOT_FOUND:
+    case TPW_ERR_NOT_FOUND:
         return "no such target — check `wpctl status` or `pw-cli ls Node`";
-    case TPW_STREAM_ERR_INVALID_FORMAT:
+    case TPW_ERR_INVALID_FORMAT:
         return "target found, but the formats do not negotiate";
-    case TPW_STREAM_ERR_NOT_CONFIGURED:
+    case TPW_ERR_NOT_CONFIGURED:
         return "the filter is not started — link after tpw_filter_start()";
-    case TPW_STREAM_ERR_TIMEOUT:
+    case TPW_ERR_TIMEOUT:
         return "the link did not negotiate in time";
-    case TPW_STREAM_ERR_CONNECT_FAILED:
+    case TPW_ERR_CONNECT_FAILED:
         return "the link could not be created";
     default:
         return "unknown error";
@@ -64,7 +64,7 @@ static void on_error(tpw_filter_h filter, tpw_filter_port_h port, int error_code
     (void)filter;
     (void)port;
     (void)user_data;
-    if (error_code == TPW_STREAM_ERR_SOURCE_UNAVAILABLE)
+    if (error_code == TPW_ERR_SOURCE_UNAVAILABLE)
         printf("a linked source went away; its port is now unlinked\n");
 }
 
@@ -95,7 +95,7 @@ int main(int argc, char** argv)
     tpw_video_format_info fmts[32];
     size_t n_fmts = 0;
     int fmt_res = tpw_filter_get_target_video_formats(filter, video_target, fmts, 32, &n_fmts);
-    if (fmt_res == TPW_STREAM_OK && n_fmts > 0) {
+    if (fmt_res == TPW_OK && n_fmts > 0) {
         const tpw_video_format_info* pick = &fmts[0];
         video_cfg.width = pick->width;
         video_cfg.height = pick->height;
@@ -123,7 +123,7 @@ int main(int argc, char** argv)
      * nothing, so a faster audio port does not starve the bundle. */
     tpw_filter_port_set_hold(video_in, true);
 
-    if (tpw_filter_start(filter) != TPW_STREAM_OK) {
+    if (tpw_filter_start(filter) != TPW_OK) {
         fprintf(stderr, "failed to start the filter\n");
         tpw_filter_destroy(filter);
         return 1;

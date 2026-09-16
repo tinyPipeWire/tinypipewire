@@ -326,7 +326,7 @@ int main(int argc, char** argv)
 
     tpw_stream_set_error_cb(stream, on_error);
 
-    if (device && tpw_stream_set_target(stream, device) != TPW_STREAM_OK) {
+    if (device && tpw_stream_set_target(stream, device) != TPW_OK) {
         fprintf(stderr, "tpw_record: failed to set target device\n");
         tpw_stream_destroy(stream);
         fclose(ctx.file);
@@ -341,14 +341,14 @@ int main(int argc, char** argv)
         tpw_audio_config cfg = { .sample_rate = sample_rate, .channels = channels, .format = audio_format };
         config_res = tpw_stream_set_audio_config(stream, &cfg);
     }
-    if (config_res != TPW_STREAM_OK) {
+    if (config_res != TPW_OK) {
         fprintf(stderr, "tpw_record: failed to set %s format\n", type == RECORD_TYPE_VIDEO ? "video" : "audio");
         tpw_stream_destroy(stream);
         fclose(ctx.file);
         return 1;
     }
 
-    if (tpw_stream_start(stream) != TPW_STREAM_OK) {
+    if (tpw_stream_start(stream) != TPW_OK) {
         fprintf(stderr, "tpw_record: failed to start %s stream\n", type == RECORD_TYPE_VIDEO ? "video" : "audio");
         tpw_stream_destroy(stream);
         fclose(ctx.file);

@@ -90,12 +90,12 @@ static void link_immediately_after_start(const char* device)
     TPW_ASSERT(s != NULL);
 
     tpw_audio_config cfg = { .sample_rate = RATE, .channels = CHANNELS, .format = "S16" };
-    TPW_ASSERT_EQ(tpw_stream_set_autoconnect(s, false), TPW_STREAM_OK);
-    TPW_ASSERT_EQ(tpw_stream_set_audio_config(s, &cfg), TPW_STREAM_OK);
-    TPW_ASSERT_EQ(tpw_stream_start(s), TPW_STREAM_OK);
+    TPW_ASSERT_EQ(tpw_stream_set_autoconnect(s, false), TPW_OK);
+    TPW_ASSERT_EQ(tpw_stream_set_audio_config(s, &cfg), TPW_OK);
+    TPW_ASSERT_EQ(tpw_stream_start(s), TPW_OK);
 
     /* No settling delay on purpose. */
-    TPW_ASSERT_EQ(tpw_stream_link(s, device), TPW_STREAM_OK);
+    TPW_ASSERT_EQ(tpw_stream_link(s, device), TPW_OK);
 
     tpw_stream_stop(s, false);
     tpw_stream_destroy(s);
@@ -106,10 +106,10 @@ static void exercise(tpw_stream_h s, const char* device)
 {
     tpw_audio_config cfg = { .sample_rate = RATE, .channels = CHANNELS, .format = "S16" };
 
-    TPW_ASSERT_EQ(tpw_stream_set_error_cb(s, on_error), TPW_STREAM_OK);
-    TPW_ASSERT_EQ(tpw_stream_set_autoconnect(s, false), TPW_STREAM_OK);
-    TPW_ASSERT_EQ(tpw_stream_set_audio_config(s, &cfg), TPW_STREAM_OK);
-    TPW_ASSERT_EQ(tpw_stream_start(s), TPW_STREAM_OK);
+    TPW_ASSERT_EQ(tpw_stream_set_error_cb(s, on_error), TPW_OK);
+    TPW_ASSERT_EQ(tpw_stream_set_autoconnect(s, false), TPW_OK);
+    TPW_ASSERT_EQ(tpw_stream_set_audio_config(s, &cfg), TPW_OK);
+    TPW_ASSERT_EQ(tpw_stream_start(s), TPW_OK);
 
     /* Nothing wired us. This is the assertion the feature exists for. */
     usleep(SETTLE_USEC);
@@ -118,7 +118,7 @@ static void exercise(tpw_stream_h s, const char* device)
     usleep(SETTLE_USEC);
     TPW_ASSERT_EQ(g_buffers, 0u);
 
-    TPW_ASSERT_EQ(tpw_stream_link(s, device), TPW_STREAM_OK);
+    TPW_ASSERT_EQ(tpw_stream_link(s, device), TPW_OK);
     usleep(SETTLE_USEC);
     int after = links_to(device);
     printf("  links %d -> %d (expected +%d)\n", before, after, CHANNELS);
@@ -131,28 +131,28 @@ static void exercise(tpw_stream_h s, const char* device)
 
     /* Stopping must NOT release the wiring — a stopped stream resumes on the
      * same device rather than silently running unconnected. */
-    TPW_ASSERT_EQ(tpw_stream_stop(s, false), TPW_STREAM_OK);
+    TPW_ASSERT_EQ(tpw_stream_stop(s, false), TPW_OK);
     usleep(SETTLE_USEC);
     TPW_ASSERT_EQ(links_to(device), after);
 
-    TPW_ASSERT_EQ(tpw_stream_start(s), TPW_STREAM_OK);
+    TPW_ASSERT_EQ(tpw_stream_start(s), TPW_OK);
     g_buffers = 0;
     usleep(SETTLE_USEC);
     TPW_ASSERT(g_buffers > 0);
     TPW_ASSERT_EQ(links_to(device), after);
 
     /* Linking again while linked is refused, and leaves the links alone. */
-    TPW_ASSERT_EQ(tpw_stream_link(s, device), TPW_STREAM_ERR_INVALID_ARG);
+    TPW_ASSERT_EQ(tpw_stream_link(s, device), TPW_ERR_INVALID_ARG);
     TPW_ASSERT_EQ(links_to(device), after);
 
     /* Releasing puts the graph back where it started. */
-    TPW_ASSERT_EQ(tpw_stream_unlink(s), TPW_STREAM_OK);
+    TPW_ASSERT_EQ(tpw_stream_unlink(s), TPW_OK);
     usleep(SETTLE_USEC);
     TPW_ASSERT_EQ(links_to(device), before);
-    TPW_ASSERT_EQ(tpw_stream_unlink(s), TPW_STREAM_ERR_NOT_CONFIGURED);
+    TPW_ASSERT_EQ(tpw_stream_unlink(s), TPW_ERR_NOT_CONFIGURED);
 
     /* And it can be wired again afterwards. */
-    TPW_ASSERT_EQ(tpw_stream_link(s, device), TPW_STREAM_OK);
+    TPW_ASSERT_EQ(tpw_stream_link(s, device), TPW_OK);
     usleep(SETTLE_USEC);
     TPW_ASSERT_EQ(links_to(device), after);
 
@@ -176,10 +176,10 @@ static void exercise_video(const char* camera)
     TPW_ASSERT(s != NULL);
 
     tpw_video_config cfg = { .width = 640, .height = 480, .pixel_format = "YUYV", .fps = 30 };
-    TPW_ASSERT_EQ(tpw_stream_set_error_cb(s, on_error), TPW_STREAM_OK);
-    TPW_ASSERT_EQ(tpw_stream_set_autoconnect(s, false), TPW_STREAM_OK);
-    TPW_ASSERT_EQ(tpw_stream_set_video_config(s, &cfg), TPW_STREAM_OK);
-    TPW_ASSERT_EQ(tpw_stream_start(s), TPW_STREAM_OK);
+    TPW_ASSERT_EQ(tpw_stream_set_error_cb(s, on_error), TPW_OK);
+    TPW_ASSERT_EQ(tpw_stream_set_autoconnect(s, false), TPW_OK);
+    TPW_ASSERT_EQ(tpw_stream_set_video_config(s, &cfg), TPW_OK);
+    TPW_ASSERT_EQ(tpw_stream_start(s), TPW_OK);
 
     usleep(SETTLE_USEC);
     int before = links_to(camera);
@@ -187,7 +187,7 @@ static void exercise_video(const char* camera)
     usleep(SETTLE_USEC);
     TPW_ASSERT_EQ(g_buffers, 0u); /* nothing wired us */
 
-    TPW_ASSERT_EQ(tpw_stream_link(s, camera), TPW_STREAM_OK);
+    TPW_ASSERT_EQ(tpw_stream_link(s, camera), TPW_OK);
     usleep(SETTLE_USEC);
     int after = links_to(camera);
     printf("  links %d -> %d (expected +1: video has no channels)\n", before, after);
@@ -200,15 +200,15 @@ static void exercise_video(const char* camera)
     TPW_ASSERT(g_buffers > 0);
 
     /* Same lifetime rules as audio. */
-    TPW_ASSERT_EQ(tpw_stream_stop(s, false), TPW_STREAM_OK);
+    TPW_ASSERT_EQ(tpw_stream_stop(s, false), TPW_OK);
     usleep(SETTLE_USEC);
     TPW_ASSERT_EQ(links_to(camera), after);
-    TPW_ASSERT_EQ(tpw_stream_start(s), TPW_STREAM_OK);
+    TPW_ASSERT_EQ(tpw_stream_start(s), TPW_OK);
     g_buffers = 0;
     usleep(SETTLE_USEC * 3);
     TPW_ASSERT(g_buffers > 0);
 
-    TPW_ASSERT_EQ(tpw_stream_unlink(s), TPW_STREAM_OK);
+    TPW_ASSERT_EQ(tpw_stream_unlink(s), TPW_OK);
     usleep(SETTLE_USEC);
     TPW_ASSERT_EQ(links_to(camera), before);
 
@@ -242,7 +242,7 @@ int main(void)
          * own target list — they both read Audio/Source from the graph. */
         tpw_target_info targets[64];
         size_t n = 0;
-        TPW_ASSERT_EQ(tpw_stream_get_target_list(s, targets, 64, &n), TPW_STREAM_OK);
+        TPW_ASSERT_EQ(tpw_stream_get_target_list(s, targets, 64, &n), TPW_OK);
         bool listed = false;
         for (size_t i = 0; i < n && i < 64; i++)
             listed = listed || strcmp(targets[i].name, source) == 0;

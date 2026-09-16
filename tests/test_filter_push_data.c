@@ -35,15 +35,15 @@ int main(void)
 
     /* Pushing to an output port is rejected. */
     char dummy[4] = { 0 };
-    TPW_ASSERT_EQ(tpw_filter_push_port_data(filter, out_port, dummy, sizeof(dummy), -1), TPW_STREAM_ERR_INVALID_ARG);
+    TPW_ASSERT_EQ(tpw_filter_push_port_data(filter, out_port, dummy, sizeof(dummy), -1), TPW_ERR_INVALID_ARG);
 
-    TPW_ASSERT_EQ(tpw_filter_start(filter), TPW_STREAM_OK);
+    TPW_ASSERT_EQ(tpw_filter_start(filter), TPW_OK);
 
     /* Only the most recently pushed buffer per port is kept. */
     char first[8] = { 1, 2, 3, 4, 5, 6, 7, 8 };
     char second[16] = { 0 };
-    TPW_ASSERT_EQ(tpw_filter_push_port_data(filter, in_port, first, sizeof(first), 1000), TPW_STREAM_OK);
-    TPW_ASSERT_EQ(tpw_filter_push_port_data(filter, in_port, second, sizeof(second), 2000), TPW_STREAM_OK);
+    TPW_ASSERT_EQ(tpw_filter_push_port_data(filter, in_port, first, sizeof(first), 1000), TPW_OK);
+    TPW_ASSERT_EQ(tpw_filter_push_port_data(filter, in_port, second, sizeof(second), 2000), TPW_OK);
 
     sleep(1);
 

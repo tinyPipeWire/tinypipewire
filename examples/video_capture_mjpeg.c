@@ -44,13 +44,13 @@ int main(void)
     tpw_stream_set_error_cb(stream, on_error);
 
     tpw_video_config cfg = { .width = 1280, .height = 720, .pixel_format = "MJPG", .fps = 30 };
-    if (tpw_stream_set_video_config(stream, &cfg) != TPW_STREAM_OK) {
+    if (tpw_stream_set_video_config(stream, &cfg) != TPW_OK) {
         fprintf(stderr, "failed to set video format (camera may not offer MJPEG at this size)\n");
         tpw_stream_destroy(stream);
         return 1;
     }
 
-    if (tpw_stream_start(stream) != TPW_STREAM_OK) {
+    if (tpw_stream_start(stream) != TPW_OK) {
         fprintf(stderr, "failed to start video stream\n");
         tpw_stream_destroy(stream);
         return 1;

@@ -26,7 +26,7 @@ static void print_formats(tpw_stream_h stream, const char* target)
     tpw_video_format_info fmts[64];
     size_t n = 0;
     int res = tpw_stream_get_target_video_formats(stream, target, fmts, 64, &n);
-    if (res != TPW_STREAM_OK) {
+    if (res != TPW_OK) {
         printf("      (could not read formats: error %d; in use elsewhere?)\n", res);
         return;
     }
@@ -59,7 +59,7 @@ static void print_targets(const char* label, tpw_stream_h stream, bool with_form
     tpw_target_info targets[32];
     size_t n = 0;
     int res = tpw_stream_get_target_list(stream, targets, 32, &n);
-    if (res != TPW_STREAM_OK) {
+    if (res != TPW_OK) {
         fprintf(stderr, "%s: could not list targets (error %d)\n", label, res);
         tpw_stream_destroy(stream);
         return;
