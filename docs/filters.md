@@ -18,7 +18,7 @@ tpw_filter_port_h tpw_filter_add_audio_port(tpw_filter_h filter, tpw_filter_port
 tpw_filter_port_h tpw_filter_add_video_port(tpw_filter_h filter, tpw_filter_port_direction direction, const tpw_video_config* config);
 tpw_filter_port_h tpw_filter_add_signal_port(tpw_filter_h filter, tpw_filter_port_direction direction);
 tpw_filter_port_h tpw_filter_add_event_port(tpw_filter_h filter, tpw_filter_port_direction direction);
-tpw_stream_type tpw_filter_port_get_type(tpw_filter_port_h port);
+tpw_data_type tpw_filter_port_get_type(tpw_filter_port_h port);
 int tpw_filter_push_port_data(tpw_filter_h filter, tpw_filter_port_h port, const void* data, size_t size, int64_t pts);
 int tpw_filter_start(tpw_filter_h filter);
 int tpw_filter_stop(tpw_filter_h filter, bool drain);
@@ -184,19 +184,19 @@ int tpw_filter_port_unlink(tpw_filter_port_h port);
 - **Call it after `tpw_filter_start()`** — this is the one port call that
   is *not* pre-start. The target is looked up in the running graph, so the
   filter's own node has to exist there first. Calling it earlier returns
-  `TPW_STREAM_ERR_NOT_CONFIGURED`.
+  `TPW_ERR_NOT_CONFIGURED`.
 - **Input ports only**, one link at a time. Linking an already-linked port
-  returns `TPW_STREAM_ERR_INVALID_ARG`; unlink first to re-target it.
+  returns `TPW_ERR_INVALID_ARG`; unlink first to re-target it.
 - **The filter owns its links** — `tpw_filter_stop()` and
   `tpw_filter_destroy()` release every link, so `tpw_filter_port_unlink()`
   is only needed to re-target a port while the filter keeps running.
 - **Failures are clean and synchronous** — the call blocks until the link
-  negotiates. An unknown target gives `TPW_STREAM_ERR_NOT_FOUND`, a format
-  that cannot negotiate gives `TPW_STREAM_ERR_INVALID_FORMAT`, and a link that
-  does not negotiate in time gives `TPW_STREAM_ERR_TIMEOUT`; in no case is a
+  negotiates. An unknown target gives `TPW_ERR_NOT_FOUND`, a format
+  that cannot negotiate gives `TPW_ERR_INVALID_FORMAT`, and a link that
+  does not negotiate in time gives `TPW_ERR_TIMEOUT`; in no case is a
   partial link left behind. If a linked device later
   disappears, the filter's error callback reports
-  `TPW_STREAM_ERR_SOURCE_UNAVAILABLE` for that port, once, and never for a
+  `TPW_ERR_SOURCE_UNAVAILABLE` for that port, once, and never for a
   link your own unlink, stop or destroy released.
 - **Filters can link to each other** — a filter's node is named after the
   `name` given to `tpw_filter_create()`, so another filter's input port can
@@ -207,7 +207,7 @@ port — see [the note above](#driving-the-bundle-with-a-real-audio-device).
 
 ### Matching a camera's format before adding the port
 
-`TPW_STREAM_ERR_INVALID_FORMAT` above is the failure worth designing
+`TPW_ERR_INVALID_FORMAT` above is the failure worth designing
 around, because by the time it appears the port can no longer be changed:
 `tpw_filter_add_video_port()` fixes a port's format and must run *before*
 `tpw_filter_start()`, while `tpw_filter_port_link()` runs after it. So the
@@ -224,7 +224,7 @@ tpw_filter_h filter = tpw_filter_create("my-filter", on_process, NULL);
 
 tpw_video_format_info fmts[32];
 size_t n = 0;
-if (tpw_filter_get_target_video_formats(filter, target, fmts, 32, &n) != TPW_STREAM_OK || n == 0)
+if (tpw_filter_get_target_video_formats(filter, target, fmts, 32, &n) != TPW_OK || n == 0)
     return; /* an error means the query failed; 0 means the device named nothing usable */
 
 tpw_video_config cfg = {
@@ -254,7 +254,7 @@ source, since nothing converts for it.
 The process callback and the error callback run on threads the library owns,
 and some calls cannot be made from there without deadlocking or tearing down
 the thread they run on. Those calls are refused with
-`TPW_STREAM_ERR_IN_CALLBACK` and the reason is logged; `tpw_filter_destroy()`
+`TPW_ERR_IN_CALLBACK` and the reason is logged; `tpw_filter_destroy()`
 has no return value, so it only logs and leaves the filter as it was.
 
 | Callback | Runs on | Refused inside it |

@@ -13,7 +13,7 @@ share the same creation, control, and data-callback functions.
 ## Capture
 
 ```c
-tpw_stream_h tpw_stream_create(tpw_stream_type type, tpw_stream_data_cb callback, void* user_data);
+tpw_stream_h tpw_stream_create(tpw_data_type type, tpw_stream_data_cb callback, void* user_data);
 int tpw_stream_set_error_cb(tpw_stream_h stream, tpw_stream_error_cb callback);
 int tpw_stream_set_target(tpw_stream_h stream, const char* target);
 int tpw_stream_set_role(tpw_stream_h stream, const char* role);
@@ -58,7 +58,7 @@ for you, so an application does not have to shell out to `wpctl`/`pw-cli`:
 ```c
 tpw_target_info targets[16];
 size_t n = 0;
-if (tpw_stream_get_target_list(stream, targets, 16, &n) != TPW_STREAM_OK)
+if (tpw_stream_get_target_list(stream, targets, 16, &n) != TPW_OK)
     return; /* the graph could not be reached — distinct from finding nothing */
 for (size_t i = 0; i < n && i < 16; i++)
     printf("%s (serial %s) - %s\n", targets[i].name, targets[i].serial, targets[i].description);
@@ -73,7 +73,7 @@ may exceed `out_len`, and a NULL `out` asks for the count alone.
 The count comes back through a parameter rather than the return value
 because this call talks to the server, so it can fail for reasons that have
 nothing to do with how many targets exist. An empty graph is
-`TPW_STREAM_OK` with `*found` 0; an unreachable one is an error. Queries
+`TPW_OK` with `*found` 0; an unreachable one is an error. Queries
 that only read buffers already delivered — `tpw_stream_get_dmabuf_planes()`
 and the filter's event and DMABUF readers — cannot fail that way, and keep
 returning their count directly.
@@ -97,7 +97,7 @@ set of roles belongs to the session manager's configuration, not to PipeWire.
 
 Like a target, it is only a hint, and **nothing checks it**: PipeWire itself
 ignores the property, and so does a session manager with no role policy
-configured, so an unknown or unused role is `TPW_STREAM_OK` and changes
+configured, so an unknown or unused role is `TPW_OK` and changes
 nothing. Unlike a target it does not contradict manual wiring, so it is
 accepted whatever `tpw_stream_set_autoconnect()` says; there it simply labels
 the node for anyone inspecting the graph.
@@ -116,7 +116,7 @@ what a given target has, in a shape meant to be handed straight back:
 ```c
 tpw_video_format_info fmts[32];
 size_t n = 0;
-if (tpw_stream_get_target_video_formats(stream, "my-camera", fmts, 32, &n) != TPW_STREAM_OK)
+if (tpw_stream_get_target_video_formats(stream, "my-camera", fmts, 32, &n) != TPW_OK)
     return; /* no such node, or the query timed out */
 for (size_t i = 0; i < n && i < 32; i++)
     printf("%s %dx%d @%d\n", fmts[i].pixel_format, fmts[i].width, fmts[i].height,
@@ -235,7 +235,7 @@ int tpw_stream_unlink(tpw_stream_h stream);
 ```
 
 ```c
-tpw_stream_h s = tpw_stream_create(TPW_STREAM_TYPE_AUDIO, on_data, NULL);
+tpw_stream_h s = tpw_stream_create(TPW_DATA_AUDIO, on_data, NULL);
 tpw_stream_set_autoconnect(s, false);        /* before the format */
 tpw_stream_set_audio_config(s, &cfg);
 tpw_stream_start(s);                          /* the graph is where we look */
@@ -262,7 +262,7 @@ unconnected.
 Automatic connection stays on unless you turn it off, so existing code is
 unaffected. The two modes are mutually exclusive: combining
 `tpw_stream_set_target()` with `tpw_stream_set_autoconnect(false)` returns
-`TPW_STREAM_ERR_INVALID_ARG`, whichever you call second.
+`TPW_ERR_INVALID_ARG`, whichever you call second.
 
 To move from one mode to the other before the format connects the stream,
 clear the target first: `tpw_stream_set_target(stream, NULL)` is accepted
@@ -279,7 +279,7 @@ handles:
   carry no channel identity, so the library cannot verify that your channel 0
   is the left channel.
 - **Reconnection.** When a linked device disappears the error callback fires
-  with `TPW_STREAM_ERR_SOURCE_UNAVAILABLE` and nothing re-routes; linking
+  with `TPW_ERR_SOURCE_UNAVAILABLE` and nothing re-routes; linking
   somewhere else is your decision.
 - **Device availability.** On a system with no session manager the device nodes
   themselves must come from somewhere — the daemon's own configuration, for
@@ -289,7 +289,7 @@ handles:
 
 Each callback runs on a thread the library owns, and some calls cannot be made
 from there without deadlocking or tearing down the thread they run on. Those
-calls are refused with `TPW_STREAM_ERR_IN_CALLBACK` and the reason is logged;
+calls are refused with `TPW_ERR_IN_CALLBACK` and the reason is logged;
 `tpw_stream_destroy()` has no return value, so it only logs and leaves the
 stream as it was.
 
@@ -328,27 +328,27 @@ delivered `tpw_stream_buffer.data` is NULL — read the frame's planes with
 formats like NV12/I420). It returns 0 for a non-DMABUF stream, never
 fabricating an fd, and the `fd` is borrowed for the callback only. If the
 source cannot provide DMABUF, the stream delivers no frames and
-`tpw_stream_error_cb` fires with `TPW_STREAM_ERR_SOURCE_UNAVAILABLE` —
+`tpw_stream_error_cb` fires with `TPW_ERR_SOURCE_UNAVAILABLE` —
 there is no silent fallback to CPU-mapped delivery. This capability is
 video-capture-only; requesting it on an audio or playback stream is
 rejected the same way an ordinary video config is.
 
 ## Error codes
 
-Every call that can fail returns a `tpw_stream_error`, and the filter calls
+Every call that can fail returns a `tpw_error`, and the filter calls
 return the same codes.
 
 | Code | What happened | What usually helps |
 | --- | --- | --- |
-| `TPW_STREAM_ERR_INVALID_ARG` | A NULL or out-of-range argument, or a call the object's current state or routing mode does not allow | Fix the call |
-| `TPW_STREAM_ERR_CONNECT_FAILED` | PipeWire could not be reached, or would not create the stream, link or query | Check that the daemon is running |
-| `TPW_STREAM_ERR_INVALID_FORMAT` | A format the library cannot name, or a link whose formats do not negotiate | Pick a format the target offers |
-| `TPW_STREAM_ERR_NOT_CONFIGURED` | A required earlier step is missing: a format before start, start before link, a link before unlink | Make that call first |
-| `TPW_STREAM_ERR_SOURCE_UNAVAILABLE` | Reported to the error callback when the source goes away or cannot provide the requested memory | Re-route or reconfigure |
-| `TPW_STREAM_ERR_IN_CALLBACK` | The call was made inside one of the object's own callbacks | Make it after the callback returns |
-| `TPW_STREAM_ERR_NOT_FOUND` | No node in the graph matches the target | List the targets again |
-| `TPW_STREAM_ERR_TIMEOUT` | PipeWire did not answer, or a link did not negotiate, in time | Retry the call |
-| `TPW_STREAM_ERR_NO_MEMORY` | A memory allocation failed | Free memory, or give up |
+| `TPW_ERR_INVALID_ARG` | A NULL or out-of-range argument, or a call the object's current state or routing mode does not allow | Fix the call |
+| `TPW_ERR_CONNECT_FAILED` | PipeWire could not be reached, or would not create the stream, link or query | Check that the daemon is running |
+| `TPW_ERR_INVALID_FORMAT` | A format the library cannot name, or a link whose formats do not negotiate | Pick a format the target offers |
+| `TPW_ERR_NOT_CONFIGURED` | A required earlier step is missing: a format before start, start before link, a link before unlink | Make that call first |
+| `TPW_ERR_SOURCE_UNAVAILABLE` | Reported to the error callback when the source goes away or cannot provide the requested memory | Re-route or reconfigure |
+| `TPW_ERR_IN_CALLBACK` | The call was made inside one of the object's own callbacks | Make it after the callback returns |
+| `TPW_ERR_NOT_FOUND` | No node in the graph matches the target | List the targets again |
+| `TPW_ERR_TIMEOUT` | PipeWire did not answer, or a link did not negotiate, in time | Retry the call |
+| `TPW_ERR_NO_MEMORY` | A memory allocation failed | Free memory, or give up |
 
 Later releases may append codes, so treat one you do not recognize as a
 general failure.
