@@ -22,7 +22,7 @@ static void tpw_filter_check_negotiated_video(struct tpw_filter* filter, struct 
                                                const struct spa_pod* param)
 {
     uint32_t media_type, media_subtype;
-    if (port->media_type != TPW_STREAM_TYPE_VIDEO)
+    if (port->media_type != TPW_DATA_VIDEO)
         return;
     if (spa_format_parse(param, &media_type, &media_subtype) < 0 || media_type != SPA_MEDIA_TYPE_video)
         return;

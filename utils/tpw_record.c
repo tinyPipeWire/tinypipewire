@@ -315,7 +315,7 @@ int main(int argc, char** argv)
         alarm((unsigned)duration);
     }
 
-    tpw_stream_type stream_type = (type == RECORD_TYPE_VIDEO) ? TPW_STREAM_TYPE_VIDEO : TPW_STREAM_TYPE_AUDIO;
+    tpw_data_type stream_type = (type == RECORD_TYPE_VIDEO) ? TPW_DATA_VIDEO : TPW_DATA_AUDIO;
     tpw_stream_h stream = tpw_stream_create(stream_type, on_data, &ctx);
     if (!stream) {
         fprintf(stderr, "tpw_record: failed to create %s stream (is PipeWire running?)\n",

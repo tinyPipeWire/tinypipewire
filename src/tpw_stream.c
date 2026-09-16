@@ -118,7 +118,7 @@ static void tpw_stream_teardown(struct tpw_stream* stream)
 
 /* Allocates a stream of `type`/`direction` and brings up its own loop.
  * Callers attach the direction-appropriate callback to the result. */
-static struct tpw_stream* tpw_stream_alloc(tpw_stream_type type, enum tpw_stream_direction direction,
+static struct tpw_stream* tpw_stream_alloc(tpw_data_type type, enum tpw_stream_direction direction,
                                             void* user_data)
 {
     tpw_pw_global_init();
@@ -145,9 +145,9 @@ static struct tpw_stream* tpw_stream_alloc(tpw_stream_type type, enum tpw_stream
     return stream;
 }
 
-tpw_stream_h tpw_stream_create(tpw_stream_type type, tpw_stream_data_cb callback, void* user_data)
+tpw_stream_h tpw_stream_create(tpw_data_type type, tpw_stream_data_cb callback, void* user_data)
 {
-    if (!callback || (type != TPW_STREAM_TYPE_AUDIO && type != TPW_STREAM_TYPE_VIDEO))
+    if (!callback || (type != TPW_DATA_AUDIO && type != TPW_DATA_VIDEO))
         return NULL;
 
     struct tpw_stream* stream = tpw_stream_alloc(type, TPW_STREAM_DIRECTION_CAPTURE, user_data);
@@ -164,7 +164,7 @@ tpw_stream_h tpw_stream_create_playback(tpw_stream_playback_cb callback, void* u
         return NULL;
 
     struct tpw_stream* stream =
-        tpw_stream_alloc(TPW_STREAM_TYPE_AUDIO, TPW_STREAM_DIRECTION_PLAYBACK, user_data);
+        tpw_stream_alloc(TPW_DATA_AUDIO, TPW_STREAM_DIRECTION_PLAYBACK, user_data);
     if (!stream)
         return NULL;
 
@@ -187,7 +187,7 @@ int tpw_stream_internal_connect(struct tpw_stream* stream, const struct spa_pod*
     }
 
     bool playback = stream->direction == TPW_STREAM_DIRECTION_PLAYBACK;
-    const char* media_type = (stream->type == TPW_STREAM_TYPE_AUDIO) ? "Audio" : "Video";
+    const char* media_type = (stream->type == TPW_DATA_AUDIO) ? "Audio" : "Video";
     struct pw_properties* props = pw_properties_new(PW_KEY_MEDIA_TYPE, media_type, PW_KEY_MEDIA_CATEGORY,
                                                      playback ? "Playback" : "Capture", NULL);
     if (stream->target)

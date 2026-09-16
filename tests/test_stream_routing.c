@@ -26,7 +26,7 @@ static void on_fill(tpw_stream_h stream, tpw_stream_playback_buffer* buf, void* 
 
 static tpw_stream_h make_capture(void)
 {
-    tpw_stream_h s = tpw_stream_create(TPW_STREAM_TYPE_AUDIO, on_data, NULL);
+    tpw_stream_h s = tpw_stream_create(TPW_DATA_AUDIO, on_data, NULL);
     TPW_ASSERT(s != NULL);
     return s;
 }
@@ -95,7 +95,7 @@ static void test_mode_is_fixed_after_connect(void)
  * stream being connected rather than by which way it was set. */
 static void test_mode_is_fixed_after_video_connect(void)
 {
-    tpw_stream_h s = tpw_stream_create(TPW_STREAM_TYPE_VIDEO, on_data, NULL);
+    tpw_stream_h s = tpw_stream_create(TPW_DATA_VIDEO, on_data, NULL);
     TPW_ASSERT(s != NULL);
     tpw_video_config cfg = { .width = 640, .height = 480, .pixel_format = "YUYV", .fps = 30 };
 

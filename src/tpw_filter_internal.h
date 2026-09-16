@@ -56,7 +56,7 @@ struct tpw_filter_pending_event {
 struct tpw_filter_port {
     struct tpw_filter* filter;
     tpw_filter_port_direction direction;
-    tpw_stream_type media_type;
+    tpw_data_type media_type;
     union {
         struct tpw_filter_audio_port_state audio;
         struct tpw_filter_video_port_state video;

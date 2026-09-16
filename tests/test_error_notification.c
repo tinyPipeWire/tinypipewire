@@ -48,13 +48,13 @@ static void check_source_loss(tpw_stream_h handle)
 
 int main(void)
 {
-    tpw_stream_h audio = tpw_stream_create(TPW_STREAM_TYPE_AUDIO, noop_data_cb, NULL);
+    tpw_stream_h audio = tpw_stream_create(TPW_DATA_AUDIO, noop_data_cb, NULL);
     TPW_ASSERT(audio != NULL);
     TPW_ASSERT_EQ(tpw_stream_set_error_cb(audio, on_error), TPW_OK);
     check_source_loss(audio);
     tpw_stream_destroy(audio);
 
-    tpw_stream_h video = tpw_stream_create(TPW_STREAM_TYPE_VIDEO, noop_data_cb, NULL);
+    tpw_stream_h video = tpw_stream_create(TPW_DATA_VIDEO, noop_data_cb, NULL);
     TPW_ASSERT(video != NULL);
     TPW_ASSERT_EQ(tpw_stream_set_error_cb(video, on_error), TPW_OK);
     check_source_loss(video);

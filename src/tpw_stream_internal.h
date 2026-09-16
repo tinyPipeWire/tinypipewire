@@ -40,7 +40,7 @@ struct tpw_video_format_state {
 
 /* One audio/video capture session, or one audio playback session. */
 struct tpw_stream {
-    tpw_stream_type type;
+    tpw_data_type type;
     enum tpw_stream_direction direction;
     enum tpw_stream_state state;
     bool format_set;

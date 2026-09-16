@@ -245,7 +245,7 @@ size_t tpw_filter_event_finish_output(struct tpw_filter_port* port, void* buf, s
 
 void tpw_filter_event_free_port(struct tpw_filter_port* port)
 {
-    if (!port || port->media_type != TPW_STREAM_TYPE_EVENT)
+    if (!port || port->media_type != TPW_DATA_EVENT)
         return;
     tpw_filter_event_clear_pending(port);
     tpw_filter_event_clear_delivering(port);
@@ -257,7 +257,7 @@ void tpw_filter_event_free_port(struct tpw_filter_port* port)
 size_t tpw_filter_port_get_event_count(tpw_filter_port_h port_handle)
 {
     struct tpw_filter_port* port = (struct tpw_filter_port*)port_handle;
-    if (!port || port->media_type != TPW_STREAM_TYPE_EVENT || port->direction != TPW_FILTER_PORT_INPUT)
+    if (!port || port->media_type != TPW_DATA_EVENT || port->direction != TPW_FILTER_PORT_INPUT)
         return 0;
     return port->n_incoming_events;
 }
@@ -265,7 +265,7 @@ size_t tpw_filter_port_get_event_count(tpw_filter_port_h port_handle)
 int tpw_filter_port_get_event(tpw_filter_port_h port_handle, size_t index, tpw_event* out)
 {
     struct tpw_filter_port* port = (struct tpw_filter_port*)port_handle;
-    if (!port || port->media_type != TPW_STREAM_TYPE_EVENT || port->direction != TPW_FILTER_PORT_INPUT || !out)
+    if (!port || port->media_type != TPW_DATA_EVENT || port->direction != TPW_FILTER_PORT_INPUT || !out)
         return TPW_ERR_INVALID_ARG;
     if (index >= port->n_incoming_events)
         return TPW_ERR_INVALID_ARG;
@@ -277,7 +277,7 @@ int tpw_filter_port_get_event(tpw_filter_port_h port_handle, size_t index, tpw_e
 int tpw_filter_port_push_event(tpw_filter_port_h port_handle, const tpw_event* event)
 {
     struct tpw_filter_port* port = (struct tpw_filter_port*)port_handle;
-    if (!port || port->media_type != TPW_STREAM_TYPE_EVENT || !event)
+    if (!port || port->media_type != TPW_DATA_EVENT || !event)
         return TPW_ERR_INVALID_ARG;
     if (event->size > 0 && !event->data)
         return TPW_ERR_INVALID_ARG;

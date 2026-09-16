@@ -326,7 +326,7 @@ int main(int argc, char** argv)
             goto cleanup;
         }
 
-        audio_capture = tpw_stream_create(TPW_STREAM_TYPE_AUDIO, on_audio_capture, &ring);
+        audio_capture = tpw_stream_create(TPW_DATA_AUDIO, on_audio_capture, &ring);
         if (!audio_capture) {
             fprintf(stderr, "tpw_stream_loopback: failed to create the audio capture stream (is PipeWire running?)\n");
             status = 1;
@@ -382,7 +382,7 @@ int main(int argc, char** argv)
             video_ctxs[i].index = i;
             video_ctxs[i].dmabuf = use_dmabuf;
 
-            video_streams[i] = tpw_stream_create(TPW_STREAM_TYPE_VIDEO, on_video_data, &video_ctxs[i]);
+            video_streams[i] = tpw_stream_create(TPW_DATA_VIDEO, on_video_data, &video_ctxs[i]);
             if (!video_streams[i]) {
                 fprintf(stderr, "tpw_stream_loopback: failed to create video stream %d\n", i);
                 video_started = i;

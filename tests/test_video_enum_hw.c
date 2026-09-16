@@ -43,7 +43,7 @@ int main(void)
         return TEST_SKIP;
     }
 
-    tpw_stream_h s = tpw_stream_create(TPW_STREAM_TYPE_VIDEO, ignore_data_cb, NULL);
+    tpw_stream_h s = tpw_stream_create(TPW_DATA_VIDEO, ignore_data_cb, NULL);
     TPW_ASSERT(s != NULL);
 
     tpw_video_format_info fmts[MAX_FORMATS];
@@ -104,7 +104,7 @@ int main(void)
 
     /* Asking again through a fresh handle, with the target set beforehand
      * and no explicit target passed, must reach the same device. */
-    tpw_stream_h s2 = tpw_stream_create(TPW_STREAM_TYPE_VIDEO, ignore_data_cb, NULL);
+    tpw_stream_h s2 = tpw_stream_create(TPW_DATA_VIDEO, ignore_data_cb, NULL);
     TPW_ASSERT(s2 != NULL);
     TPW_ASSERT_EQ(tpw_stream_set_target(s2, node), TPW_OK);
     size_t again = 0;

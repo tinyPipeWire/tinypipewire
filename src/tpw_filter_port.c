@@ -36,10 +36,10 @@ static void* tpw_filter_add_port_common(struct tpw_filter* filter, tpw_filter_po
     return port_data;
 }
 
-tpw_stream_type tpw_filter_port_get_type(tpw_filter_port_h port_handle)
+tpw_data_type tpw_filter_port_get_type(tpw_filter_port_h port_handle)
 {
     struct tpw_filter_port* port = (struct tpw_filter_port*)port_handle;
-    return port ? port->media_type : TPW_STREAM_TYPE_AUDIO;
+    return port ? port->media_type : TPW_DATA_AUDIO;
 }
 
 tpw_filter_port_h tpw_filter_add_audio_port(tpw_filter_h handle, tpw_filter_port_direction direction,
@@ -69,7 +69,7 @@ tpw_filter_port_h tpw_filter_add_audio_port(tpw_filter_h handle, tpw_filter_port
     struct tpw_filter_port* port = port_data;
     port->filter = filter;
     port->direction = direction;
-    port->media_type = TPW_STREAM_TYPE_AUDIO;
+    port->media_type = TPW_DATA_AUDIO;
     port->config.audio.sample_rate = config->sample_rate;
     port->config.audio.channels = config->channels;
     port->config.audio.format = fmt;
@@ -87,7 +87,7 @@ int tpw_filter_push_port_data(tpw_filter_h handle, tpw_filter_port_h port_handle
     struct tpw_filter_port* port = (struct tpw_filter_port*)port_handle;
     if (!filter || !port || port->filter != filter || port->direction != TPW_FILTER_PORT_INPUT)
         return TPW_ERR_INVALID_ARG;
-    if (port->media_type == TPW_STREAM_TYPE_EVENT)
+    if (port->media_type == TPW_DATA_EVENT)
         return TPW_ERR_INVALID_ARG;
     if (size > 0 && !data)
         return TPW_ERR_INVALID_ARG;
@@ -136,7 +136,7 @@ tpw_filter_port_h tpw_filter_add_signal_port(tpw_filter_h handle, tpw_filter_por
     struct tpw_filter_port* port = port_data;
     port->filter = filter;
     port->direction = direction;
-    port->media_type = TPW_STREAM_TYPE_SIGNAL;
+    port->media_type = TPW_DATA_SIGNAL;
 
     if (!tpw_filter_add_port_to_list(filter, port))
         return NULL;
@@ -163,7 +163,7 @@ tpw_filter_port_h tpw_filter_add_event_port(tpw_filter_h handle, tpw_filter_port
     struct tpw_filter_port* port = port_data;
     port->filter = filter;
     port->direction = direction;
-    port->media_type = TPW_STREAM_TYPE_EVENT;
+    port->media_type = TPW_DATA_EVENT;
 
     if (!tpw_filter_add_port_to_list(filter, port))
         return NULL;
@@ -224,7 +224,7 @@ tpw_filter_port_h tpw_filter_add_video_port_ex(tpw_filter_h handle, tpw_filter_p
     struct tpw_filter_port* port = port_data;
     port->filter = filter;
     port->direction = direction;
-    port->media_type = TPW_STREAM_TYPE_VIDEO;
+    port->media_type = TPW_DATA_VIDEO;
     port->config.video.width = config->width;
     port->config.video.height = config->height;
     port->config.video.format = fmt;

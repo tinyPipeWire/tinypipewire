@@ -86,7 +86,7 @@ static int links_to(const char* node)
  * waiting on both rather than reading them once. */
 static void link_immediately_after_start(const char* device)
 {
-    tpw_stream_h s = tpw_stream_create(TPW_STREAM_TYPE_AUDIO, on_data, NULL);
+    tpw_stream_h s = tpw_stream_create(TPW_DATA_AUDIO, on_data, NULL);
     TPW_ASSERT(s != NULL);
 
     tpw_audio_config cfg = { .sample_rate = RATE, .channels = CHANNELS, .format = "S16" };
@@ -172,7 +172,7 @@ static void exercise(tpw_stream_h s, const char* device)
  * cases above. */
 static void exercise_video(const char* camera)
 {
-    tpw_stream_h s = tpw_stream_create(TPW_STREAM_TYPE_VIDEO, on_data, NULL);
+    tpw_stream_h s = tpw_stream_create(TPW_DATA_VIDEO, on_data, NULL);
     TPW_ASSERT(s != NULL);
 
     tpw_video_config cfg = { .width = 640, .height = 480, .pixel_format = "YUYV", .fps = 30 };
@@ -232,7 +232,7 @@ int main(void)
 
     if (have_source) {
         printf("capture -> %s\n", source);
-        tpw_stream_h s = tpw_stream_create(TPW_STREAM_TYPE_AUDIO, on_data, NULL);
+        tpw_stream_h s = tpw_stream_create(TPW_DATA_AUDIO, on_data, NULL);
         if (!s) {
             printf("no PipeWire connection, skipping\n");
             return TEST_SKIP;

@@ -29,10 +29,10 @@ int main(void)
     TPW_ASSERT(signal != NULL);
     TPW_ASSERT(event != NULL);
 
-    TPW_ASSERT_EQ(tpw_filter_port_get_type(audio), TPW_STREAM_TYPE_AUDIO);
-    TPW_ASSERT_EQ(tpw_filter_port_get_type(video), TPW_STREAM_TYPE_VIDEO);
-    TPW_ASSERT_EQ(tpw_filter_port_get_type(signal), TPW_STREAM_TYPE_SIGNAL);
-    TPW_ASSERT_EQ(tpw_filter_port_get_type(event), TPW_STREAM_TYPE_EVENT);
+    TPW_ASSERT_EQ(tpw_filter_port_get_type(audio), TPW_DATA_AUDIO);
+    TPW_ASSERT_EQ(tpw_filter_port_get_type(video), TPW_DATA_VIDEO);
+    TPW_ASSERT_EQ(tpw_filter_port_get_type(signal), TPW_DATA_SIGNAL);
+    TPW_ASSERT_EQ(tpw_filter_port_get_type(event), TPW_DATA_EVENT);
 
     tpw_filter_destroy(filter);
     return 0;

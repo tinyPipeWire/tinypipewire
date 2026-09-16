@@ -28,7 +28,7 @@ static void on_data(tpw_stream_h stream, const tpw_stream_buffer* buf, void* use
 
 static tpw_stream_h make_running_stream(void)
 {
-    tpw_stream_h s = tpw_stream_create(TPW_STREAM_TYPE_AUDIO, on_data, NULL);
+    tpw_stream_h s = tpw_stream_create(TPW_DATA_AUDIO, on_data, NULL);
     TPW_ASSERT(s != NULL);
     TPW_ASSERT_EQ(tpw_stream_set_autoconnect(s, false), TPW_OK);
     TPW_ASSERT_EQ(tpw_stream_set_audio_config(s, &g_cfg), TPW_OK);

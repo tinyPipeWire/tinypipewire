@@ -75,7 +75,7 @@ static void on_plane_data(tpw_stream_h stream, const tpw_stream_buffer* buf, voi
 static void check_multiplane_format(const char* camera, const char* pixel_format, unsigned expect_planes)
 {
     struct plane_counters c = { 0 };
-    tpw_stream_h s = tpw_stream_create(TPW_STREAM_TYPE_VIDEO, on_plane_data, &c);
+    tpw_stream_h s = tpw_stream_create(TPW_DATA_VIDEO, on_plane_data, &c);
     if (!s)
         return;
 
@@ -113,7 +113,7 @@ int main(void)
     printf("capturing from: %s\n", camera);
 
     struct counters c = { .last_fd = -1 };
-    tpw_stream_h stream = tpw_stream_create(TPW_STREAM_TYPE_VIDEO, on_data, &c);
+    tpw_stream_h stream = tpw_stream_create(TPW_DATA_VIDEO, on_data, &c);
     if (!stream) {
         printf("no PipeWire connection, skipping\n");
         return TEST_SKIP;

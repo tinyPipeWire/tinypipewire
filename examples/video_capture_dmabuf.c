@@ -41,7 +41,7 @@ int main(void)
 {
     signal(SIGINT, on_signal);
 
-    tpw_stream_h stream = tpw_stream_create(TPW_STREAM_TYPE_VIDEO, on_data, NULL);
+    tpw_stream_h stream = tpw_stream_create(TPW_DATA_VIDEO, on_data, NULL);
     if (!stream) {
         fprintf(stderr, "failed to create video stream (is PipeWire running?)\n");
         return 1;
